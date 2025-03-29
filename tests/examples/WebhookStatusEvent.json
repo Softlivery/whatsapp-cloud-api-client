@@ -1,0 +1,40 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "7834291359",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "4012759655",
+              "phone_number_id": "7714202087"
+            },
+            "statuses": [
+              {
+                "id": "wamid.PvMgEDLXbtZoDenzqqZVDsTz6VYZSCwivtcLj9sQ8tMz8JnbmeL07OA=",
+                "status": "sent",
+                "timestamp": "1743081616",
+                "recipient_id": "555123456789",
+                "conversation": {
+                  "id": "4227807a4a7c58862d2d205d7ad49ady",
+                  "expiration_timestamp": "1743168060",
+                  "origin": {
+                    "type": "service"
+                  }
+                },
+                "pricing": {
+                  "billable": true,
+                  "pricing_model": "CBP",
+                  "category": "service"
+                }
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}

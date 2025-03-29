@@ -1,0 +1,37 @@
+{
+  "name": "softlivery/whatsapp-cloud-api-client",
+  "description": "A client library for WhatsApp Cloud API.",
+  "type": "library",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "minimum-stability": "stable",
+  "authors": [
+    {
+      "name": "Matias Flores",
+      "email": "info@softlivery.com"
+    }
+  ],
+  "require": {
+    "php": ">=8.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "Softlivery\\WhatsappCloudApiClient\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Softlivery\\WhatsappCloudApiClient\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  },
+  "support": {
+    "issues": "https://github.com/softlivery/whatsapp-cloud-api-client/issues",
+    "source": "https://github.com/softlivery/whatsapp-cloud-api-client"
+  }
+}
