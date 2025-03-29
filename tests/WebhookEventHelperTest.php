@@ -7,10 +7,10 @@ use ReflectionClass;
 use Softlivery\WhatsappCloudApiClient\Dto\Webhook\Event;
 use Softlivery\WhatsappCloudApiClient\Exception\InvalidSignatureException;
 use Softlivery\WhatsappCloudApiClient\PayloadMapperInterface;
-use Softlivery\WhatsappCloudApiClient\WebhookEventHandler;
+use Softlivery\WhatsappCloudApiClient\Webhook\WebhookEventHelper;
 use TypeError;
 
-class WebhookEventHandlerTest extends TestCase
+class WebhookEventHelperTest extends TestCase
 {
     public function testConstructorSuccessfullyInitializesProperties(): void
     {
@@ -20,14 +20,14 @@ class WebhookEventHandlerTest extends TestCase
 
         $webhookEventHandler = $this->getWebhookEventHandlerInstance($verificationToken, $clientSecret, $payloadMapper);
 
-        $this->assertSame('test_verification_token', $this->getProperty($webhookEventHandler, 'verificationToken'));
+        $this->assertSame('test_verification_token', $this->getProperty($webhookEventHandler, 'hubVerifyToken'));
         $this->assertSame('test_client_secret', $this->getProperty($webhookEventHandler, 'clientSecret'));
         $this->assertSame($payloadMapper, $this->getProperty($webhookEventHandler, 'payloadMapper'));
     }
 
-    private function getWebhookEventHandlerInstance(string $verificationToken, string $clientSecret, $payloadMapper): WebhookEventHandler
+    private function getWebhookEventHandlerInstance(string $verificationToken, string $clientSecret, $payloadMapper): WebhookEventHelper
     {
-        return new class($verificationToken, $clientSecret, $payloadMapper) extends WebhookEventHandler {
+        return new class($verificationToken, $clientSecret, $payloadMapper) extends WebhookEventHelper {
             public function __construct(string $verificationToken, string $clientSecret, $payloadMapper)
             {
                 parent::__construct($verificationToken, $clientSecret, $payloadMapper);
@@ -63,9 +63,8 @@ class WebhookEventHandlerTest extends TestCase
         $payloadMapper = $this->createMock(PayloadMapperInterface::class);
 
         $webhookEventHandler = $this->getWebhookEventHandlerInstance($verificationToken, $clientSecret, $payloadMapper);
-        $queryParameters = ['hub_verify_token' => $verificationToken];
 
-        $this->assertSame($verificationToken, $webhookEventHandler->handle('', $queryParameters));
+        $this->assertTrue($webhookEventHandler->isHubVerifyTokenValid($verificationToken));
     }
 
     public function testHandleParsesValidPayload(): void
@@ -83,7 +82,7 @@ class WebhookEventHandlerTest extends TestCase
             ->willReturn($eventMock);
 
         $webhookEventHandler = $this->getWebhookEventHandlerInstance($verificationToken, $clientSecret, $payloadMapper);
-        $response = $webhookEventHandler->handle($payload, [], ['HTTP_X_HUB_SIGNATURE_256' => 'cdd4201447252a94e91fc9344df28e9716860392fff82c13e7ea3fde99b94929']);
+        $response = $webhookEventHandler->validateAndParse($payload, ['HTTP_X_HUB_SIGNATURE_256' => 'cdd4201447252a94e91fc9344df28e9716860392fff82c13e7ea3fde99b94929']);
 
         $this->assertSame($eventMock, $response);
     }
@@ -101,6 +100,6 @@ class WebhookEventHandlerTest extends TestCase
 
         $this->expectException(InvalidSignatureException::class);
 
-        $webhookEventHandler->handle($payload);
+        $webhookEventHandler->validateAndParse($payload);
     }
 }

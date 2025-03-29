@@ -1,17 +1,19 @@
 <?php declare(strict_types=1);
 
-namespace Softlivery\WhatsappCloudApiClient;
+namespace Softlivery\WhatsappCloudApiClient\Webhook;
 
 use ReflectionException;
 use Softlivery\WhatsappCloudApiClient\Dto\Webhook\Event;
 use Softlivery\WhatsappCloudApiClient\Exception\InvalidSignatureException;
+use Softlivery\WhatsappCloudApiClient\PayloadMapper;
+use Softlivery\WhatsappCloudApiClient\PayloadMapperInterface;
 
-abstract class WebhookEventHandler
+class WebhookEventHelper
 {
-    protected const HUB_VERIFY_TOKEN_KEY = 'hub_verify_token';
+    public const HUB_VERIFY_TOKEN_KEY = 'hub_verify_token';
     protected const SIGNATURE_PREFIX = 'sha256=';
     const HTTP_X_HUB_SIGNATURE_256 = 'HTTP_X_HUB_SIGNATURE_256';
-    protected string $verificationToken;
+    protected string $hubVerifyToken;
     protected string $clientSecret;
     protected PayloadMapperInterface $payloadMapper;
 
@@ -22,38 +24,22 @@ abstract class WebhookEventHandler
      */
     protected function __construct(string $verificationToken, string $clientSecret, PayloadMapperInterface $payloadMapper = new PayloadMapper())
     {
-        $this->verificationToken = $verificationToken;
+        $this->hubVerifyToken = $verificationToken;
         $this->clientSecret = $clientSecret;
         $this->payloadMapper = $payloadMapper;
     }
 
     /**
      * @param string $payload
-     * @param array $queryParameters
      * @param array $headers
-     * @return Event|string
+     * @return Event
      * @throws InvalidSignatureException
      * @throws ReflectionException
      */
-    public function handle(string $payload, array $queryParameters = [], array $headers = []): Event|string
+    public function validateAndParse(string $payload, array $headers = []): Event
     {
-        if (array_key_exists(static::HUB_VERIFY_TOKEN_KEY, $queryParameters) &&
-            $this->isHubVerifyTokenValid($queryParameters)) {
-            return $this->verificationToken;
-        }
-
         $this->validateSignature($payload, $headers);
-
         return $this->parse($payload);
-    }
-
-    /**
-     * @param array $queryParameters
-     * @return bool
-     */
-    protected function isHubVerifyTokenValid(array $queryParameters): bool
-    {
-        return $queryParameters[static::HUB_VERIFY_TOKEN_KEY] === $this->verificationToken;
     }
 
     /**
@@ -62,7 +48,7 @@ abstract class WebhookEventHandler
      * @return void
      * @throws InvalidSignatureException
      */
-    protected function validateSignature(string $payload, array $headers): void
+    public function validateSignature(string $payload, array $headers): void
     {
         $computedSignature = $this->computeSignature($payload);
         $headerSignature = $this->getSignatureFromHeader($headers);
@@ -105,9 +91,18 @@ abstract class WebhookEventHandler
      * @return Event
      * @throws ReflectionException
      */
-    protected function parse(string $payload): Event
+    public function parse(string $payload): Event
     {
         $decodedPayload = json_decode($payload, true);
         return $this->payloadMapper->map($decodedPayload, Event::class);
+    }
+
+    /**
+     * @param string $hubVerifyToken
+     * @return bool
+     */
+    public function isHubVerifyTokenValid(string $hubVerifyToken): bool
+    {
+        return $hubVerifyToken === $this->hubVerifyToken;
     }
 }
