@@ -6,25 +6,25 @@ use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionException;
 
-class PayloadMapper
+class PayloadMapper implements PayloadMapperInterface
 {
     /**
      * Maps an associative array to an instance of the specified class, initializing properties with values from the array.
      *
      * @param array $payload The input array containing data to populate the class properties.
-     * @param string $className The fully qualified name of the class to map the data to.
+     * @param string $targetClass The fully qualified name of the class to map the data to.
      *                          The class must exist, or an exception will be thrown.
      * @return object An instance of the specified class with mapped properties.
      * @throws InvalidArgumentException If the specified class does not exist.
      * @throws ReflectionException If the class is an internal class that cannot be instantiated without invoking the constructor.
      */
-    public static function map(array $payload, string $className): object
+    public function map(array $payload, string $targetClass): mixed
     {
-        if (!class_exists($className)) {
-            throw new InvalidArgumentException("Class $className does not exist.");
+        if (!class_exists($targetClass)) {
+            throw new InvalidArgumentException("Class $targetClass does not exist.");
         }
 
-        $reflection = new ReflectionClass($className);
+        $reflection = new ReflectionClass($targetClass);
         $object = $reflection->newInstanceWithoutConstructor();
 
         foreach ($payload as $key => $value) {
@@ -42,7 +42,7 @@ class PayloadMapper
                     }
 
                     if (class_exists($nestedClass)) {
-                        $object->$key = array_map(fn($item) => self::map($item, $nestedClass), $value);
+                        $object->$key = array_map(fn($item) => (new PayloadMapper)->map($item, $nestedClass), $value);
                     } else {
                         $object->$key = $value;
                     }
@@ -54,7 +54,7 @@ class PayloadMapper
                         'bool' => boolval($value)
                     };
                 } elseif ($type && class_exists($type)) {
-                    $object->$key = self::map($value, $type);
+                    $object->$key = (new PayloadMapper)->map($value, $type);
                 } else {
                     $object->$key = $value;
                 }

@@ -3,8 +3,8 @@
 namespace Softlivery\WhatsappCloudApiClient\Tests;
 
 use InvalidArgumentException;
-use Softlivery\WhatsappCloudApiClient\PayloadMapper;
 use PHPUnit\Framework\TestCase;
+use Softlivery\WhatsappCloudApiClient\PayloadMapper;
 
 class PayloadMapperTest extends TestCase
 {
@@ -18,7 +18,7 @@ class PayloadMapperTest extends TestCase
         $className = DummyClass::class;
 
         // Act
-        $result = PayloadMapper::map($payload, $className);
+        $result = (new PayloadMapper)->map($payload, $className);
 
         // Assert
         $this->assertInstanceOf($className, $result);
@@ -40,7 +40,7 @@ class PayloadMapperTest extends TestCase
         $className = ParentClass::class;
 
         // Act
-        $result = PayloadMapper::map($payload, $className);
+        $result = (new PayloadMapper)->map($payload, $className);
 
         // Assert
         $this->assertInstanceOf($className, $result);
@@ -65,7 +65,7 @@ class PayloadMapperTest extends TestCase
         $className = CollectionClass::class;
 
         // Act
-        $result = PayloadMapper::map($payload, $className);
+        $result = (new PayloadMapper)->map($payload, $className);
 
         // Assert
         $this->assertInstanceOf($className, $result);
@@ -84,7 +84,7 @@ class PayloadMapperTest extends TestCase
         $this->expectExceptionMessage('Class NonExistentClass does not exist.');
 
         // Act
-        PayloadMapper::map([], 'NonExistentClass');
+        (new PayloadMapper)->map([], 'NonExistentClass');
     }
 
     /**
@@ -96,7 +96,7 @@ class PayloadMapperTest extends TestCase
         //$this->expectException(ReflectionException::class);
 
         // Act
-        $result = PayloadMapper::map([], UninstantiableClass::class);
+        $result = (new PayloadMapper)->map([], UninstantiableClass::class);
         $this->assertInstanceOf(UninstantiableClass::class, $result);
     }
 }
