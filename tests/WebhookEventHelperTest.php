@@ -28,9 +28,9 @@ class WebhookEventHelperTest extends TestCase
     private function getWebhookEventHandlerInstance(string $verificationToken, string $clientSecret, $payloadMapper): WebhookEventHelper
     {
         return new class($verificationToken, $clientSecret, $payloadMapper) extends WebhookEventHelper {
-            public function __construct(string $verificationToken, string $clientSecret, $payloadMapper)
+            public function __construct(string $hubVerifyToken, string $clientSecret, $payloadMapper)
             {
-                parent::__construct($verificationToken, $clientSecret, $payloadMapper);
+                parent::__construct($hubVerifyToken, $clientSecret, $payloadMapper);
             }
         };
     }

@@ -18,13 +18,13 @@ class WebhookEventHelper
     protected PayloadMapperInterface $payloadMapper;
 
     /**
-     * @param string $verificationToken
+     * @param string $hubVerifyToken
      * @param string $clientSecret
      * @param PayloadMapperInterface $payloadMapper
      */
-    protected function __construct(string $verificationToken, string $clientSecret, PayloadMapperInterface $payloadMapper = new PayloadMapper())
+    public function __construct(string $hubVerifyToken, string $clientSecret, PayloadMapperInterface $payloadMapper = new PayloadMapper())
     {
-        $this->hubVerifyToken = $verificationToken;
+        $this->hubVerifyToken = $hubVerifyToken;
         $this->clientSecret = $clientSecret;
         $this->payloadMapper = $payloadMapper;
     }
