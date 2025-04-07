@@ -6,18 +6,18 @@ use Softlivery\WhatsappCloudApiClient\Dto\Webhook\Event;
 
 class WebhookEvent
 {
-    private Event $event;
+    private Event $payload;
 
-    public function __construct(Event $event)
+    public function __construct(Event $payload)
     {
-        $this->event = $event;
+        $this->payload = $payload;
     }
 
     /**
      * @return Event
      */
-    public function getEvent(): Event
+    public function getPayload(): Event
     {
-        return $this->event;
+        return $this->payload;
     }
 }
