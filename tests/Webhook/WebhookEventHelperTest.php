@@ -1,6 +1,6 @@
 <?php
 
-namespace Softlivery\WhatsappCloudApiClient\Tests;
+namespace Softlivery\WhatsappCloudApiClient\Tests\Webhook;
 
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
