@@ -27,7 +27,7 @@ pipeline {
 
         stage('Publish Coverage') {
             steps {
-                recordCoverage tools: [[$class: 'Cobertura', pattern: 'coverage.xml']]
+                recordCoverage tools: [genericCoverage(pattern: 'coverage.xml', parser: 'COBERTURA')]
             }
         }
 
