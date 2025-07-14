@@ -1,8 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <phpunit bootstrap="vendor/autoload.php"
-         colors="true"
-         executionOrder="depends,defects">
-    
+         colors="true">
+
     <testsuites>
         <testsuite name="Application Test Suite">
             <directory>./tests</directory>
@@ -10,9 +8,8 @@
     </testsuites>
 
     <coverage>
-        <report>
-            <clover outputFile="coverage.xml"/>
-            <text showUncoveredFiles="true" showOnlySummary="false"/>
-        </report>
+        <include>
+            <directory suffix=".php">./src</directory>
+        </include>
     </coverage>
 </phpunit>
