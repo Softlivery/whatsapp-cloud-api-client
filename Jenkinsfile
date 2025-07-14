@@ -13,7 +13,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                cleanWs()
                 checkout scm
             }
         }
@@ -66,6 +65,7 @@ pipeline {
                 allOf {
                     not { changeRequest() }
                     anyOf {
+                        branch pattern: 'feature/.*', comparator: 'REGEXP'
                         branch pattern: 'hotfix/.*', comparator: 'REGEXP'
                     }
                 }
@@ -105,27 +105,13 @@ pipeline {
 
                     def nextVersion = sh(script: "./scripts/next-version.sh", returnStdout: true).trim()
                     def releaseBranch = "release/RC-${nextVersion}"
-                    def localBranchExists = sh(script: "git branch --list ${releaseBranch}", returnStdout: true).trim()
-
-                    if (localBranchExists) {
-                        echo "Deleting existing local branch: ${releaseBranch}"
-                        sh "git branch -D ${releaseBranch}"
-                    }
-
-                    sh """
-                    git config user.name "jenkins"
-                    git config user.email "ci@softlivery.com"
-                    git add VERSION
-                    git commit -m "Bump version to ${nextVersion}"
-                    git checkout -b ${releaseBranch}
-                    git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
-                    git push origin release/RC-${nextVersion}
-                    """
+                    sh "git checkout -b ${releaseBranch}"
+                    sh "git push origin ${releaseBranch}"
                 }
             }
         }
 
-        stage('Tag Release Candidate') {
+        stage('Tag Final Release') {
             when {
                 allOf {
                     branch pattern: 'release/.*', comparator: 'REGEXP'
@@ -134,24 +120,12 @@ pipeline {
             }
             steps {
                 script {
+                    // Extract version like v1.2.3 from RC-v1.2.3
                     def version = env.BRANCH_NAME.replaceAll(/^release\\/RC-/, 'v')
-                    def tag = "${version}-rc"
-                    def tagExists = sh(
-                        script: "git fetch --tags && git tag -l ${tag}",
-                        returnStdout: true
-                    ).trim()
-
-                    if (tagExists) {
-                        error "Tag ${tag} already exists. Aborting tagging stage."
-                    } else {
-                        sh """
-                        git config user.name "jenkins"
-                        git config user.email "ci@softlivery.com"
-                        git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
-                        git tag -a ${tag} -m "Release ${tag}"
-                        git push origin ${tag}
-                        """
-                    }
+                    sh """
+                    git tag ${version}
+                    git push origin ${version}
+                    """
                 }
             }
         }
@@ -166,69 +140,9 @@ pipeline {
             steps {
                 script {
                     def base = 'main'
-                    def version = env.BRANCH_NAME.replaceAll(/^release\\/RC-/, 'v')
                     sh """
-                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release ${version}"  --body "Final production release from ${env.BRANCH_NAME} to main."
+                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release Final: ${env.BRANCH_NAME}" --body "Final production release."
                     """
-                }
-            }
-        }
-
-        stage('Tag Final on Main') {
-            when {
-                branch 'main'
-            }
-            steps {
-                script {
-                    def version = sh(script: "cat VERSION", returnStdout: true).trim()
-                    def tag = "v${version}"
-                    def tagExists = sh(
-                        script: "git fetch --tags && git tag -l ${tag}",
-                        returnStdout: true
-                    ).trim()
-
-                    if (tagExists) {
-                        error "Tag ${tag} already exists. Aborting tagging stage."
-                    } else {
-                        sh """
-                        git config user.name "jenkins"
-                        git config user.email "ci@softlivery.com"
-                        git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
-                        git tag -a ${tag} -m "Release ${tag}"
-                        git push origin ${tag}
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Backport: Main to Develop') {
-            when {
-                branch 'main'
-            }
-            steps {
-                script {
-                    sh """
-                    git fetch origin main
-                    git fetch origin develop
-                    """
-
-                    def prExists = sh(
-                        script: "gh pr list --state open --head main --base develop --json number -q '.[].number'",
-                        returnStdout: true
-                    ).trim()
-
-                    if (prExists) {
-                        echo "Backport PR from main to develop already exists."
-                    } else {
-                        sh """
-                        gh pr create \\
-                          --base develop \\
-                          --head main \\
-                          --title "Backport: Sync main to develop" \\
-                          --body "Automatically created backport PR after release."
-                        """
-                    }
                 }
             }
         }
