@@ -37,7 +37,7 @@ pipeline {
                 }
             }
             steps {
-                sh "${PHP_PATH} vendor/bin/phpunit --coverage-xml=coverage-xml/"
+                sh "${PHP_PATH} vendor/bin/phpunit --coverage-cobertura=coverage.xml"
             }
         }
 
@@ -51,7 +51,7 @@ pipeline {
             steps {
                 discoverReferenceBuild()
                 recordCoverage(
-                    tools: [[parser: 'JACOCO', pattern: 'coverage-xml/*.xml']],
+                    tools: [[parser: 'COBERTURA', pattern: 'coverage.xml']],
                     sourceCodeRetention: 'MODIFIED',
                     qualityGates: [
                         [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT'],
