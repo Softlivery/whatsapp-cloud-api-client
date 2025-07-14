@@ -27,7 +27,12 @@ pipeline {
 
         stage('Publish Coverage') {
             steps {
-                recordCoverage tools: [genericCoverage(pattern: 'coverage.xml', parser: 'COBERTURA')]
+                discoverReferenceBuild()
+                recordCoverage(tools: [[pattern: 'coverage.xml', parser: 'CLOVER']],
+                    sourceCodeRetention: 'MODIFIED',
+                    qualityGates: [
+                            [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', unstable: true],
+                            [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]])
             }
         }
 
