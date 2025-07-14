@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit bootstrap="vendor/autoload.php"
          colors="true"
-         verbose="true"
          executionOrder="depends,defects">
     
     <testsuites>
@@ -10,10 +9,7 @@
         </testsuite>
     </testsuites>
 
-    <coverage processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">./src</directory>
-        </include>
+    <coverage>
         <report>
             <clover outputFile="coverage.xml"/>
             <text showUncoveredFiles="true" showOnlySummary="false"/>
