@@ -6,6 +6,10 @@ pipeline {
         COMPOSER_PATH = '/usr/local/bin/composer'
     }
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -14,67 +18,132 @@ pipeline {
         }
 
         stage('Install Dependencies') {
+            when {
+                anyOf {
+                    changeRequest()
+                    branch pattern: 'release/.*', comparator: 'REGEXP'
+                }
+            }
             steps {
                 sh "${COMPOSER_PATH} install"
             }
         }
 
         stage('Run PHPUnit Tests') {
+            when {
+                anyOf {
+                    changeRequest()
+                    branch pattern: 'release/.*', comparator: 'REGEXP'
+                }
+            }
             steps {
                 sh "${PHP_PATH} vendor/bin/phpunit --coverage-clover=coverage.xml"
             }
         }
 
         stage('Publish Coverage') {
+            when {
+                anyOf {
+                    changeRequest()
+                    branch pattern: 'release/.*', comparator: 'REGEXP'
+                }
+            }
             steps {
                 discoverReferenceBuild()
-                recordCoverage(tools: [[pattern: 'coverage.xml', parser: 'CLOVER']],
+                recordCoverage(
+                    tools: [[pattern: 'coverage.xml', parser: 'CLOVER']],
                     sourceCodeRetention: 'MODIFIED',
                     qualityGates: [
-                            [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT'],
-                            [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT']])
+                        [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT'],
+                        [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT']
+                    ])
             }
         }
 
-        stage('Create/Approve Pull Request') {
+        stage('Create Pull Request') {
             when {
-                branch pattern: 'feature/.*', comparator: 'REGEXP'
+                allOf {
+                    not { changeRequest() }
+                    anyOf {
+                        branch pattern: 'feature/.*', comparator: 'REGEXP'
+                        branch pattern: 'hotfix/.*', comparator: 'REGEXP'
+                    }
+                }
             }
             steps {
                 script {
-                    def branchName = env.BRANCH_NAME
-                    def targetBranch = 'develop'
+                    def base = 'develop'
                     sh """
-                    gh pr create --base ${targetBranch} --head ${branchName} --title "Auto PR: ${branchName}" --body "Created automatically after tests passed"
+                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Auto PR: ${env.BRANCH_NAME}" --body "Automatically created for review and testing."
                     """
                 }
             }
         }
 
-        stage('Merge Pull Request') {
-            when {
-                branch pattern: 'feature/.*', comparator: 'REGEXP'
-            }
-            steps {
-                script {
-                    def prUrl = sh(script: "gh pr list --state open --head ${env.BRANCH_NAME} --json url -q '.[0].url'", returnStdout: true).trim()
-                    if (prUrl) {
-                        sh "gh pr merge ${prUrl} --auto --merge"
-                    }
-                }
-            }
-        }
-
-        stage('PR to Release/Main') {
+        stage('Validate Release Creation') {
             when {
                 branch 'develop'
             }
             steps {
                 script {
+                    def openRelease = sh(
+                        script: "git ls-remote --heads origin 'refs/heads/release/*' | wc -l",
+                        returnStdout: true
+                    ).trim()
+
+                    if (openRelease != '0') {
+                        error("A release branch already exists. Close it before creating a new one.")
+                    }
+
+                    def nextVersion = sh(script: "./scripts/next-version.sh", returnStdout: true).trim()
+                    def releaseBranch = "release/RC-${nextVersion}"
+                    sh "git checkout -b ${releaseBranch}"
+                    sh "git push origin ${releaseBranch}"
+                }
+            }
+        }
+
+        stage('Tag Final Release') {
+            when {
+                allOf {
+                    branch pattern: 'release/.*', comparator: 'REGEXP'
+                    not { changeRequest() }
+                }
+            }
+            steps {
+                script {
+                    // Extract version like v1.2.3 from RC-v1.2.3
+                    def version = env.BRANCH_NAME.replaceAll(/^release\\/RC-/, 'v')
                     sh """
-                    gh pr create --base release/0.0 --head develop --title "Release Prep" --body "Merging develop into release/0.0"
+                    git tag ${version}
+                    git push origin ${version}
                     """
                 }
+            }
+        }
+
+        stage('Auto PR: Release to Main') {
+            when {
+                allOf {
+                    branch pattern: 'release/.*', comparator: 'REGEXP'
+                    not { changeRequest() }
+                }
+            }
+            steps {
+                script {
+                    def base = 'main'
+                    sh """
+                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release Final: ${env.BRANCH_NAME}" --body "Final production release."
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            script {
+                echo "Build completed successfully."
             }
         }
     }
