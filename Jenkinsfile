@@ -27,7 +27,7 @@ pipeline {
 
         stage('Publish Coverage') {
             steps {
-                recordCoverage tools: [coberturaAdapter('coverage.xml')]
+                recordCoverage tools: [[$class: 'Cobertura', pattern: 'coverage.xml']]
             }
         }
 
@@ -71,12 +71,6 @@ pipeline {
                     """
                 }
             }
-        }
-    }
-
-    post {
-        always {
-            junit '**/tests/results.xml'
         }
     }
 }
