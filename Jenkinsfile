@@ -43,7 +43,7 @@ pipeline {
             steps {
                 script {
                     def branchName = env.BRANCH_NAME
-                    def targetBranch = 'dev'
+                    def targetBranch = 'develop'
                     sh """
                     gh pr create --base ${targetBranch} --head ${branchName} --title "Auto PR: ${branchName}" --body "Created automatically after tests passed"
                     """
@@ -67,12 +67,12 @@ pipeline {
 
         stage('PR to Release/Main') {
             when {
-                branch 'dev'
+                branch 'develop'
             }
             steps {
                 script {
                     sh """
-                    gh pr create --base release/0.0 --head dev --title "Release Prep" --body "Merging dev into release/0.0"
+                    gh pr create --base release/0.0 --head develop --title "Release Prep" --body "Merging develop into release/0.0"
                     """
                 }
             }
