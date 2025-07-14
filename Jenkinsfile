@@ -72,10 +72,18 @@ pipeline {
             }
             steps {
                 script {
-                    def base = 'develop'
-                    sh """
-                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Auto PR: ${env.BRANCH_NAME}" --body "Automatically created for review and testing."
-                    """
+                    def existingPr = sh(
+                        script: "gh pr list --state open --head ${env.BRANCH_NAME} --json number -q '.[].number'",
+                        returnStdout: true
+                    ).trim()
+
+                    if (existingPr) {
+                        echo "Pull request already exists for ${env.BRANCH_NAME}. Skipping creation."
+                    } else {
+                        sh """
+                        gh pr create --base develop --head ${env.BRANCH_NAME} --title "Auto PR: ${env.BRANCH_NAME}" --body "Automatically created for review and testing."
+                        """
+                    }
                 }
             }
         }
