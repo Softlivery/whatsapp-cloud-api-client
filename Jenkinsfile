@@ -129,8 +129,9 @@ pipeline {
             steps {
                 script {
                     def base = 'main'
+                    def version = env.BRANCH_NAME.replaceAll(/^release\\/RC-/, 'v')
                     sh """
-                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release Final: ${env.BRANCH_NAME}" --fill-verbose
+                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release ${version}"  --body "Final production release from ${env.BRANCH_NAME} to main."
                     """
                 }
             }
