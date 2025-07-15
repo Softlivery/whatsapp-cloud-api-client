@@ -113,11 +113,9 @@ pipeline {
                     }
 
                     sh """
-                    sed -i -E 's/"version": *"[0-9a-zA-Z\\.-]+"/"version": "'"${nextVersion}"'"/' composer.json
-
                     git config user.name "jenkins"
                     git config user.email "ci@softlivery.com"
-                    git add VERSION composer.json
+                    git add VERSION
                     git commit -m "Bump version to ${nextVersion}"
                     git checkout -b ${releaseBranch}
                     git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
