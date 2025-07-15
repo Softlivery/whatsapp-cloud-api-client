@@ -167,6 +167,7 @@ pipeline {
                 script {
                     def base = 'main'
                     sh """
+                    git fetch origin ${base}
                     gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release Final: ${env.BRANCH_NAME}" --fill-verbose
                     """
                 }
