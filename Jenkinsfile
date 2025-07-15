@@ -13,6 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                cleanWs()
                 checkout scm
             }
         }
@@ -104,26 +105,22 @@ pipeline {
 
                     def nextVersion = sh(script: "./scripts/next-version.sh", returnStdout: true).trim()
                     def releaseBranch = "release/RC-${nextVersion}"
+                    def localBranchExists = sh(script: "git branch --list ${releaseBranch}", returnStdout: true).trim()
 
-                    sh """
-                      git config user.name "jenkins"
-                      git config user.email "ci@softlivery.com"
-                      git add VERSION
-                      git commit -m "Bump version to ${nextVersion}"
-                    """
-
-                    sh """
-                      git checkout -b ${releaseBranch}
-                    """
-
-                    withCredentials([sshUserPrivateKey(credentialsId: 'b4bef3ef-927a-401b-a7d8-33d9d4920e2d', keyFileVariable: 'SSH_KEY')]) {
-                        sh """
-                          eval \$(ssh-agent -s)
-                          ssh-add ${SSH_KEY}
-                          git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
-                          git push origin release/RC-${nextVersion}
-                        """
+                    if (localBranchExists) {
+                        echo "Deleting existing local branch: ${releaseBranch}"
+                        sh "git branch -D ${releaseBranch}"
                     }
+
+                    sh """
+                    git config user.name "jenkins"
+                    git config user.email "ci@softlivery.com"
+                    git add VERSION
+                    git commit -m "Bump version to ${nextVersion}"
+                    git checkout -b ${releaseBranch}
+                    git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
+                    git push origin release/RC-${nextVersion}
+                    """
                 }
             }
         }
@@ -139,15 +136,11 @@ pipeline {
                 script {
                     def version = env.BRANCH_NAME.replaceAll(/^release\\/RC-/, 'v')
 
-                    withCredentials([sshUserPrivateKey(credentialsId: 'b4bef3ef-927a-401b-a7d8-33d9d4920e2d', keyFileVariable: 'SSH_KEY')]) {
-                        sh """
-                          eval \$(ssh-agent -s)
-                          ssh-add ${SSH_KEY}
-                          git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
-                          git tag ${version}
-                          git push origin ${version}
-                        """
-                    }
+                    sh """
+                    git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
+                    git tag ${version}
+                    git push origin ${version}
+                    """
                 }
             }
         }
@@ -163,7 +156,7 @@ pipeline {
                 script {
                     def base = 'main'
                     sh """
-                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release Final: ${env.BRANCH_NAME}" --body "Final production release."
+                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release Final: ${env.BRANCH_NAME}"
                     """
                 }
             }
