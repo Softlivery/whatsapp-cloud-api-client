@@ -65,7 +65,6 @@ pipeline {
                 allOf {
                     not { changeRequest() }
                     anyOf {
-                        branch pattern: 'feature/.*', comparator: 'REGEXP'
                         branch pattern: 'hotfix/.*', comparator: 'REGEXP'
                     }
                 }
@@ -103,6 +102,7 @@ pipeline {
                         error("A release branch already exists. Close it before creating a new one.")
                     }
 
+                    sh "git fetch --tags"
                     def nextVersion = sh(script: "./scripts/next-version.sh", returnStdout: true).trim()
                     def releaseBranch = "release/RC-${nextVersion}"
                     sh "git checkout -b ${releaseBranch}"
