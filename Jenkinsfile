@@ -125,7 +125,7 @@ pipeline {
             }
         }
 
-        stage('Tag Final Release') {
+        stage('Tag Release Candidate') {
             when {
                 allOf {
                     branch pattern: 'release/.*', comparator: 'REGEXP'
@@ -135,12 +135,23 @@ pipeline {
             steps {
                 script {
                     def version = env.BRANCH_NAME.replaceAll(/^release\\/RC-/, 'v')
+                    def tag = "${version}-rc"
+                    def tagExists = sh(
+                        script: "git fetch --tags && git tag -l ${tag}",
+                        returnStdout: true
+                    ).trim()
 
-                    sh """
-                    git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
-                    git tag ${version}
-                    git push origin ${version}
-                    """
+                    if (tagExists) {
+                        error "Tag ${tag} already exists. Aborting tagging stage."
+                    } else {
+                        sh """
+                        git config user.name "jenkins"
+                        git config user.email "ci@softlivery.com"
+                        git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
+                        git tag -a ${tag} -m "Release ${tag}"
+                        git push origin ${tag}
+                        """
+                    }
                 }
             }
         }
@@ -156,8 +167,36 @@ pipeline {
                 script {
                     def base = 'main'
                     sh """
-                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release Final: ${env.BRANCH_NAME}"
+                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release Final: ${env.BRANCH_NAME}" --fill-verbose
                     """
+                }
+            }
+        }
+
+        stage('Tag Final on Main') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    def version = sh(script: "cat VERSION", returnStdout: true).trim()
+                    def tag = "v${version}"
+                    def tagExists = sh(
+                        script: "git fetch --tags && git tag -l ${tag}",
+                        returnStdout: true
+                    ).trim()
+
+                    if (tagExists) {
+                        error "Tag ${tag} already exists. Aborting tagging stage."
+                    } else {
+                        sh """
+                        git config user.name "jenkins"
+                        git config user.email "ci@softlivery.com"
+                        git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
+                        git tag -a ${tag} -m "Release ${tag}"
+                        git push origin ${tag}
+                        """
+                    }
                 }
             }
         }
