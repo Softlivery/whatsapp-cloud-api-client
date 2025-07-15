@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        PHP_PATH = '/usr/bin/php'
-        COMPOSER_PATH = '/usr/local/bin/composer'
-    }
-
     options {
         skipDefaultCheckout(true)
     }
