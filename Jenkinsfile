@@ -163,6 +163,37 @@ pipeline {
                 }
             }
         }
+
+        stage('Backport: Main to Develop') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    sh """
+                    git fetch origin main
+                    git fetch origin develop
+                    """
+
+                    def prExists = sh(
+                        script: "gh pr list --state open --head main --base develop --json number -q '.[].number'",
+                        returnStdout: true
+                    ).trim()
+
+                    if (prExists) {
+                        echo "Backport PR from main to develop already exists."
+                    } else {
+                        sh """
+                        gh pr create \\
+                          --base develop \\
+                          --head main \\
+                          --title "Backport: Sync main to develop" \\
+                          --body "Automatically created backport PR after release."
+                        """
+                    }
+                }
+            }
+        }
     }
 
     post {
