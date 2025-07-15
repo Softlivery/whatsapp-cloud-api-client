@@ -168,7 +168,6 @@ pipeline {
                     def base = 'main'
                     def version = env.BRANCH_NAME.replaceAll(/^release\\/RC-/, 'v')
                     sh """
-                    git fetch origin ${base}
                     gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release ${version}"  --body "Final production release from ${env.BRANCH_NAME} to main."
                     """
                 }
