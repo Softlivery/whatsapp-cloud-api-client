@@ -88,43 +88,6 @@ pipeline {
             }
         }
 
-        stage('Validate Release Creation') {
-            when {
-                branch 'develop'
-            }
-            steps {
-                script {
-                    def openRelease = sh(
-                        script: "git ls-remote --heads origin 'refs/heads/release/*' | wc -l",
-                        returnStdout: true
-                    ).trim()
-
-                    if (openRelease != '0') {
-                        error("A release branch already exists. Close it before creating a new one.")
-                    }
-
-                    def nextVersion = sh(script: "./scripts/next-version.sh", returnStdout: true).trim()
-                    def releaseBranch = "release/RC-${nextVersion}"
-                    def localBranchExists = sh(script: "git branch --list ${releaseBranch}", returnStdout: true).trim()
-
-                    if (localBranchExists) {
-                        echo "Deleting existing local branch: ${releaseBranch}"
-                        sh "git branch -D ${releaseBranch}"
-                    }
-
-                    sh """
-                    git config user.name "jenkins"
-                    git config user.email "ci@softlivery.com"
-                    git add VERSION
-                    git commit -m "Bump version to ${nextVersion}"
-                    git checkout -b ${releaseBranch}
-                    git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
-                    git push origin release/RC-${nextVersion}
-                    """
-                }
-            }
-        }
-
         stage('Tag Release Candidate') {
             when {
                 allOf {
