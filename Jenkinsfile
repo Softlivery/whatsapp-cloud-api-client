@@ -114,8 +114,16 @@ pipeline {
 
                     sh """
                       git checkout -b ${releaseBranch}
-                      git push origin ${releaseBranch}
                     """
+
+                    withCredentials([sshUserPrivateKey(credentialsId: 'b4bef3ef-927a-401b-a7d8-33d9d4920e2d', keyFileVariable: 'SSH_KEY')]) {
+                        sh """
+                          eval \$(ssh-agent -s)
+                          ssh-add ${SSH_KEY}
+                          git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
+                          git push origin release/RC-${nextVersion}
+                        """
+                    }
                 }
             }
         }
@@ -129,12 +137,17 @@ pipeline {
             }
             steps {
                 script {
-                    // Extract version like v1.2.3 from RC-v1.2.3
                     def version = env.BRANCH_NAME.replaceAll(/^release\\/RC-/, 'v')
-                    sh """
-                    git tag ${version}
-                    git push origin ${version}
-                    """
+
+                    withCredentials([sshUserPrivateKey(credentialsId: 'b4bef3ef-927a-401b-a7d8-33d9d4920e2d', keyFileVariable: 'SSH_KEY')]) {
+                        sh """
+                          eval \$(ssh-agent -s)
+                          ssh-add ${SSH_KEY}
+                          git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
+                          git tag ${version}
+                          git push origin ${version}
+                        """
+                    }
                 }
             }
         }
