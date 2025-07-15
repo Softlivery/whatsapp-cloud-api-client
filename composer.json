@@ -2,7 +2,6 @@
   "name": "softlivery/whatsapp-cloud-api-client",
   "description": "A client library for WhatsApp Cloud API.",
   "type": "library",
-  "version": "0.0.1",
   "license": "Apache-2.0",
   "minimum-stability": "stable",
   "authors": [
