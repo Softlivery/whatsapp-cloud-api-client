@@ -102,11 +102,20 @@ pipeline {
                         error("A release branch already exists. Close it before creating a new one.")
                     }
 
-                    sh "git fetch --tags"
                     def nextVersion = sh(script: "./scripts/next-version.sh", returnStdout: true).trim()
                     def releaseBranch = "release/RC-${nextVersion}"
-                    sh "git checkout -b ${releaseBranch}"
-                    sh "git push origin ${releaseBranch}"
+
+                    sh """
+                      git config user.name "jenkins"
+                      git config user.email "ci@softlivery.com"
+                      git add VERSION
+                      git commit -m "Bump version to ${nextVersion}"
+                    """
+
+                    sh """
+                      git checkout -b ${releaseBranch}
+                      git push origin ${releaseBranch}
+                    """
                 }
             }
         }
