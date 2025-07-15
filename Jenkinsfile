@@ -166,8 +166,9 @@ pipeline {
             steps {
                 script {
                     def base = 'main'
+                    def version = env.BRANCH_NAME.replaceAll(/^release\\/RC-/, 'v')
                     sh """
-                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release Final: ${env.BRANCH_NAME}" --fill-verbose
+                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release ${version}"  --body "Final production release from ${env.BRANCH_NAME} to main."
                     """
                 }
             }
@@ -195,6 +196,37 @@ pipeline {
                         git remote set-url origin git@github.com:Softlivery/whatsapp-cloud-api-client.git
                         git tag -a ${tag} -m "Release ${tag}"
                         git push origin ${tag}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Backport: Main to Develop') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    sh """
+                    git fetch origin main
+                    git fetch origin develop
+                    """
+
+                    def prExists = sh(
+                        script: "gh pr list --state open --head main --base develop --json number -q '.[].number'",
+                        returnStdout: true
+                    ).trim()
+
+                    if (prExists) {
+                        echo "Backport PR from main to develop already exists."
+                    } else {
+                        sh """
+                        gh pr create \\
+                          --base develop \\
+                          --head main \\
+                          --title "Backport: Sync main to develop" \\
+                          --body "Automatically created backport PR after release."
                         """
                     }
                 }
