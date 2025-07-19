@@ -26,6 +26,7 @@ class MessageApiRequestTest extends TestCase
         $this->assertEquals('POST', $messageApiRequest->getMethod());
         $this->assertEquals([
             'Authorization' => "Bearer $accessToken",
+            'Content-Type' => 'application/json'
         ], $messageApiRequest->getHeaders());
         $this->assertEquals($timeout, $messageApiRequest->getTimeout());
     }
