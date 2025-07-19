@@ -22,7 +22,7 @@ class ApiRequestTest extends TestCase
         $this->assertEquals($path, $apiRequest->getPath());
         $this->assertEquals($method, $apiRequest->getMethod());
         $this->assertEquals($timeout, $apiRequest->getTimeout());
-        $this->assertEquals(['Authorization' => "Bearer $accessToken"], $apiRequest->getHeaders());
+        $this->assertEquals(['Authorization' => "Bearer $accessToken", 'Content-Type' => 'application/json'], $apiRequest->getHeaders());
     }
 
     public function testDefaultTimeoutIsSetTo60()

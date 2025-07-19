@@ -17,6 +17,7 @@ abstract class ApiRequest
 
         $this->headers = [
             'Authorization' => "Bearer $access_token",
+            'Content-Type' => 'application/json',
         ];
     }
 
