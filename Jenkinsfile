@@ -81,7 +81,7 @@ pipeline {
                         echo "Pull request already exists for ${env.BRANCH_NAME}. Skipping creation."
                     } else {
                         sh """
-                        gh pr create --base develop --head ${env.BRANCH_NAME} --title "Auto PR: ${env.BRANCH_NAME}" --body "Automatically created for review and testing."
+                        gh pr create --base main --head ${env.BRANCH_NAME} --title "Auto PR: ${env.BRANCH_NAME}" --body "Automatically created for review and testing."
                         """
                     }
                 }
@@ -128,10 +128,9 @@ pipeline {
             }
             steps {
                 script {
-                    def base = 'main'
                     def version = env.BRANCH_NAME.replaceAll(/^release\\/RC-/, 'v')
                     sh """
-                    gh pr create --base ${base} --head ${env.BRANCH_NAME} --title "Release ${version}"  --body "Final production release from ${env.BRANCH_NAME} to main."
+                    gh pr create --base main --head ${env.BRANCH_NAME} --title "Release ${version}"  --body "Final production release from ${env.BRANCH_NAME} to main."
                     """
                 }
             }
