@@ -23,7 +23,6 @@ pipeline {
                 anyOf {
                     changeRequest()
                     branch pattern: 'release/.*', comparator: 'REGEXP'
-                    branch pattern: 'hotfix/.*', comparator: 'REGEXP'
                 }
             }
             steps {
@@ -36,7 +35,6 @@ pipeline {
                 anyOf {
                     changeRequest()
                     branch pattern: 'release/.*', comparator: 'REGEXP'
-                    branch pattern: 'hotfix/.*', comparator: 'REGEXP'
                 }
             }
             steps {
@@ -49,7 +47,6 @@ pipeline {
                 anyOf {
                     changeRequest()
                     branch pattern: 'release/.*', comparator: 'REGEXP'
-                    branch pattern: 'hotfix/.*', comparator: 'REGEXP'
                 }
             }
             steps {
