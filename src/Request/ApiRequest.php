@@ -9,14 +9,13 @@ abstract class ApiRequest
     public string $path;
     public int $timeout = 60;
 
-    public function __construct(string $access_token, string $path, string $method, int $timeout = 60)
+    public function __construct(string $path, string $method, int $timeout = 60)
     {
         $this->path = $path;
         $this->method = $method;
         $this->timeout = $timeout;
 
         $this->headers = [
-            'Authorization' => "Bearer $access_token",
             'Content-Type' => 'application/json',
         ];
     }

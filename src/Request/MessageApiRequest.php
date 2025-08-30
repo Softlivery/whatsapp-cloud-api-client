@@ -4,7 +4,7 @@ namespace Softlivery\WhatsappCloudApiClient\Request;
 
 use Softlivery\WhatsappCloudApiClient\Dto\Message\Message;
 
-class MessageApiRequest extends ApiRequest
+class MessageApiRequest extends AuthorizedApiRequest
 {
     private Message $message;
 
