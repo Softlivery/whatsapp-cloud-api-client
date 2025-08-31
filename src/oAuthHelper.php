@@ -2,11 +2,11 @@
 
 namespace Softlivery\WhatsappCloudApiClient;
 
-use Softlivery\WhatsappCloudApiClient\Exception\ApiResponseException;
 use Softlivery\WhatsappCloudApiClient\Http\HttpClient;
-use Softlivery\WhatsappCloudApiClient\Request\CodeExchangeApiRequest;
+use Softlivery\WhatsappCloudApiClient\Http\Middleware\ErrorRaisingClient;
+use Softlivery\WhatsappCloudApiClient\Request\RequestFactory;
+use Softlivery\WhatsappCloudApiClient\Response\AssignedUsersApiResponse;
 use Softlivery\WhatsappCloudApiClient\Response\CodeExchangeApiResponse;
-use Softlivery\WhatsappCloudApiClient\Response\ErrorApiResponse;
 
 class oAuthHelper
 {
@@ -18,21 +18,20 @@ class oAuthHelper
     {
         $this->client_id = $client_id;
         $this->client_secret = $client_secret;
-        $this->httpClient = $httpClient;
+        $this->httpClient = new ErrorRaisingClient($httpClient);
     }
 
-    /**
-     * @throws ApiResponseException
-     */
     public function exchangeCode(string $code, string $redirect_url): CodeExchangeApiResponse
     {
-        $request = new CodeExchangeApiRequest($this->client_id, $this->client_secret, $code, $redirect_url);
+        $request = RequestFactory::exchangeCode($this->client_id, $this->client_secret, $code, $redirect_url);
         $response = $this->httpClient->send($request);
-
-        if ($response->isError()) {
-            throw (new ErrorApiResponse($response))::throw();
-        }
-
         return new CodeExchangeApiResponse($response);
+    }
+
+    public function assignedUsers(string $business_id, string $access_token, string $waba_id): AssignedUsersApiResponse
+    {
+        $request = RequestFactory::assignedUsers($waba_id, $business_id, $access_token);
+        $response = $this->httpClient->send($request);
+        return new AssignedUsersApiResponse($response);
     }
 }
