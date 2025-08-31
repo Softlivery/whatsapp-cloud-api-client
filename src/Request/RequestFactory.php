@@ -28,6 +28,19 @@ final class RequestFactory
     }
 
     /**
+     * POST /{wabaId}/assigned_users?tasks=MANAGE&user={userId}&access_token={accessToken}
+     */
+    public static function assignUser(string $wabaId, string $userId, string $accessToken, int $timeout = 60): ApiRequest
+    {
+        return (new ApiRequest("{$wabaId}/assigned_users", 'POST', $timeout))
+            ->withQuery([
+                'user' => $userId,
+                'tasks' => 'MANAGE',
+                'access_token' => $accessToken,
+            ]);
+    }
+
+    /**
      * GET oauth/access_token?client_id=...&client_secret=...&code=...&redirect_uri=...
      */
     public static function exchangeCode(string $clientId, string $clientSecret, string $code, string $redirectUri, int $timeout = 60): ApiRequest

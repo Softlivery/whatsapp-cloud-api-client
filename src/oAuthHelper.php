@@ -6,6 +6,7 @@ use Softlivery\WhatsappCloudApiClient\Http\HttpClient;
 use Softlivery\WhatsappCloudApiClient\Http\Middleware\ErrorRaisingClient;
 use Softlivery\WhatsappCloudApiClient\Request\RequestFactory;
 use Softlivery\WhatsappCloudApiClient\Response\AssignedUsersApiResponse;
+use Softlivery\WhatsappCloudApiClient\Response\AssignUserApiResponse;
 use Softlivery\WhatsappCloudApiClient\Response\CodeExchangeApiResponse;
 
 class oAuthHelper
@@ -33,5 +34,12 @@ class oAuthHelper
         $request = RequestFactory::assignedUsers($waba_id, $business_id, $access_token);
         $response = $this->httpClient->send($request);
         return new AssignedUsersApiResponse($response);
+    }
+
+    public function assignUser(string $user_id, string $access_token, string $waba_id): AssignUserApiResponse
+    {
+        $request = RequestFactory::assignUser($waba_id, $user_id, $access_token);
+        $response = $this->httpClient->send($request);
+        return new AssignUserApiResponse($response);
     }
 }
