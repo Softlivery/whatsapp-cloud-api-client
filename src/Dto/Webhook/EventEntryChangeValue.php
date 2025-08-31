@@ -12,6 +12,9 @@ class EventEntryChangeValue
     public ?array $messages;
     /** @var EventEntryChangeValueStatus[] */
     public ?array $statuses;
+    public ?EventEntryChangeValueWabaInfo $waba_info;
+
+    public ?string $event;
 
     public function type(): string
     {
@@ -19,6 +22,8 @@ class EventEntryChangeValue
             return 'messages';
         } elseif (isset($this->statuses)) {
             return 'statuses';
+        } elseif (isset($this->event)) {
+            return 'event';
         } else {
             return 'unknown';
         }
