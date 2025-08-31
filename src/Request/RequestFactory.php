@@ -16,6 +16,19 @@ final class RequestFactory
     }
 
     /**
+     * POST /{wabaId}/assigned_partners?tasks=MANAGE&user={userId}&access_token={accessToken}
+     */
+    public static function assignPartner(string $wabaId, string $partnerId, string $accessToken, int $timeout = 60): ApiRequest
+    {
+        return (new ApiRequest("{$wabaId}/assigned_partners", 'POST', $timeout))
+            ->withQuery([
+                'partner' => $partnerId,
+                'tasks' => '["MANAGE","MESSAGE","DEVELOP","ANALYZE","CARE"]',
+                'access_token' => $accessToken,
+            ]);
+    }
+
+    /**
      * GET /{wabaId}/assigned_users?business={businessId}&access_token={accessToken}
      */
     public static function assignedUsers(string $wabaId, string $businessId, string $accessToken, int $timeout = 60): ApiRequest
