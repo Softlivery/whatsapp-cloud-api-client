@@ -54,6 +54,14 @@ final class RequestFactory
     }
 
     /**
+     * POST /{wabaId}/subscribed_apps
+     */
+    public static function subscribeApp(string $wabaId, string $accessToken, int $timeout = 60): ApiRequest
+    {
+        return (new ApiRequest("{$wabaId}/subscribed_apps", 'POST', $timeout))->withHeaders(['Authorization' => 'Bearer ' . $accessToken]);
+    }
+
+    /**
      * GET oauth/access_token?client_id=...&client_secret=...&code=...&redirect_uri=...
      */
     public static function exchangeCode(string $clientId, string $clientSecret, string $code, string $redirectUri, int $timeout = 60): ApiRequest
