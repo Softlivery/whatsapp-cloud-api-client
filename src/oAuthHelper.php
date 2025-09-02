@@ -9,6 +9,7 @@ use Softlivery\WhatsappCloudApiClient\Response\AssignedUsersApiResponse;
 use Softlivery\WhatsappCloudApiClient\Response\AssignPartnerApiResponse;
 use Softlivery\WhatsappCloudApiClient\Response\AssignUserApiResponse;
 use Softlivery\WhatsappCloudApiClient\Response\CodeExchangeApiResponse;
+use Softlivery\WhatsappCloudApiClient\Response\GetPhoneNumberApiResponse;
 use Softlivery\WhatsappCloudApiClient\Response\SubscribeAppApiResponse;
 
 class oAuthHelper
@@ -57,5 +58,12 @@ class oAuthHelper
         $request = RequestFactory::subscribeApp($wabaId, $accessToken);
         $response = $this->httpClient->send($request);
         return new SubscribeAppApiResponse($response);
+    }
+
+    public function getPhoneNumber(string $phonenumber_id, string $accessToken)
+    {
+        $request = RequestFactory::getPhoneNumber($phonenumber_id, $accessToken);
+        $response = $this->httpClient->send($request);
+        return new GetPhoneNumberApiResponse($response);
     }
 }

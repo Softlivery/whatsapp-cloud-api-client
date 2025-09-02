@@ -62,7 +62,7 @@ final class RequestFactory
     }
 
     /**
-     * GET oauth/access_token?client_id=...&client_secret=...&code=...&redirect_uri=...
+     * GET /oauth/access_token?client_id=...&client_secret=...&code=...&redirect_uri=...
      */
     public static function exchangeCode(string $clientId, string $clientSecret, string $code, string $redirectUri, int $timeout = 60): ApiRequest
     {
@@ -72,6 +72,17 @@ final class RequestFactory
                 'client_secret' => $clientSecret,
                 'code' => $code,
                 'redirect_uri' => $redirectUri,
+            ]);
+    }
+
+    /**
+     * GET /{phoneNumber}?access_token={accessToken}
+     */
+    public static function getPhoneNumber(string $phoneNumberId, string $accessToken, int $timeout = 60): ApiRequest
+    {
+        return (new ApiRequest($phoneNumberId, 'GET', $timeout))
+            ->withQuery([
+                'access_token' => $accessToken,
             ]);
     }
 }
