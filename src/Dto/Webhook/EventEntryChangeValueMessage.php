@@ -4,23 +4,30 @@ namespace Softlivery\WhatsappCloudApiClient\Dto\Webhook;
 
 class EventEntryChangeValueMessage
 {
-    public string $from;
-    public string $id;
-    public string $timestamp;
-    public string $type;
-    public EventEntryChangeValueMessageAudio $audio;
-    public EventEntryChangeValueMessageButton $button;
-    public EventEntryChangeValueMessageContext $context;
-    public EventEntryChangeValueMessageDocument $document;
-    public EventEntryChangeValueMessageIdentity $identity;
-    public EventEntryChangeValueMessageImage $image;
-    public EventEntryChangeValueMessageInteractive $interactive;
-    public EventEntryChangeValueMessageOrder $order;
-    public EventEntryChangeValueMessageReferral $referral;
-    public EventEntryChangeValueMessageSticker $sticker;
-    public EventEntryChangeValueMessageSystem $system;
-    public EventEntryChangeValueMessageText $text;
-    public EventEntryChangeValueMessageVideo $video;
+    public ?string $from = null;
+    public ?string $id = null;
+    public ?string $timestamp = null;
+    public ?string $type = null;
+    public ?EventEntryChangeValueMessageAudio $audio = null;
+    public ?EventEntryChangeValueMessageButton $button = null;
+    public ?EventEntryChangeValueMessageContext $context = null;
+    public ?EventEntryChangeValueMessageDocument $document = null;
+    public ?EventEntryChangeValueMessageIdentity $identity = null;
+    public ?EventEntryChangeValueMessageImage $image = null;
+    public ?EventEntryChangeValueMessageInteractive $interactive = null;
+    public ?EventEntryChangeValueMessageOrder $order = null;
+    public ?EventEntryChangeValueMessageReferral $referral = null;
+    public ?EventEntryChangeValueMessageSticker $sticker = null;
+    public ?EventEntryChangeValueMessageSystem $system = null;
+    public ?EventEntryChangeValueMessageText $text = null;
+    public ?EventEntryChangeValueMessageVideo $video = null;
+    public ?EventEntryChangeValueMessageLocation $location = null;
+    public ?EventEntryChangeValueMessageReaction $reaction = null;
+    public ?EventEntryChangeValueMessageUnsupported $unsupported = null;
+    /** @var array<int,array<string,mixed>>|null */
+    public ?array $contacts = null;
+    public ?bool $edited = null;
+    public ?bool $deleted = null;
 
     public function forwarded()
     {

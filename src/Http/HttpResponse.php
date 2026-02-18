@@ -19,21 +19,20 @@ class HttpResponse
         $this->headers = $headers;
         $this->decoded_body = json_decode($this->body, true) ?? [];
     }
-
-    /**
-     * @return int|null
-     */
-    public function getHttpStatusCode(): ?int
+    
+    public function getStatusCode(): ?int
     {
         return $this->http_status_code;
     }
 
-    /**
-     * @return array
-     */
     public function getHeaders(): array
     {
         return $this->headers;
+    }
+
+    public function getBody(): string
+    {
+        return $this->body;
     }
 
     /**
@@ -46,6 +45,10 @@ class HttpResponse
 
     public function isError(): bool
     {
+        // Consider HTTP status code and presence of an "error" field in body
+        if ($this->http_status_code !== null && $this->http_status_code >= 400) {
+            return true;
+        }
         return isset($this->decoded_body['error']);
     }
 }
