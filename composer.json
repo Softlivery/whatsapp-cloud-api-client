@@ -26,6 +26,9 @@
       "Softlivery\\WhatsappCloudApiClient\\Tests\\": "tests/"
     }
   },
+  "suggest": {
+    "ext-curl": "Required to use the built-in CurlHttpClient transport."
+  },
   "scripts": {
     "test": "phpunit"
   },

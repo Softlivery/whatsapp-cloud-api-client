@@ -37,14 +37,14 @@ class HttpResponseTest extends TestCase
         return $property->getValue($object);
     }
 
-    public function testGetHttpStatusCode()
+    public function testGetStatusCode()
     {
         // Arrange
         $httpStatusCode = 404;
         $response = new HttpResponse('{"error":"Not Found"}', $httpStatusCode);
 
         // Act & Assert
-        $this->assertEquals($httpStatusCode, $response->getHttpStatusCode());
+        $this->assertEquals($httpStatusCode, $response->getStatusCode());
     }
 
     public function testGetHeaders()

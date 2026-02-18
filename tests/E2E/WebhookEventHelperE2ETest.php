@@ -50,7 +50,7 @@ class WebhookEventHelperE2ETest extends TestCase
     public function testHandleThrowsExceptionForInvalidSignature(): void
     {
         // Example payload
-        $payload = file_get_contents(__DIR__ . '/examples/WebhookStatusEvent.json');
+        $payload = file_get_contents(__DIR__ . '/../examples/WebhookStatusEvent.json');
 
         // Simulate an incorrect signature
         $invalidSignature = "sha256=this_is_an_invalid_signature";

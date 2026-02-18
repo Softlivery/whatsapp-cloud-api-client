@@ -6,7 +6,11 @@ An open-source Whatsapp Cloud API client for PHP that simplifies webhook handlin
 
 ## Features
 
-- Parses and validates webhook payloads.
+- Full message sending helpers (text, media, template, contacts, location, reaction, interactive).
+- Media operations (upload, fetch metadata, delete).
+- Template management and analytics helpers.
+- WABA operations (phone numbers, assigned users/partners, conversation analytics, profiles).
+- Parses and validates webhook payloads, including recent account events.
 - Verifies webhook challenges through Facebook's Hub Verification token.
 
 ---
@@ -38,7 +42,39 @@ The `WebhookEventHelper` provides the following key methods:
 
 - **`isHubVerifyTokenValid(string $hubVerifyToken): bool`:** Validates the verification token sent by Facebook during
   webhook setup.
-- **`validateAndParse(string $payload, array $serverHeaders): array`:** Parses and validates incoming webhook payloads.
+- **`validateAndParse(string $payload, array $serverHeaders): Event`:** Parses and validates incoming webhook payloads.
+
+---
+
+## Using `WhatsappCloudClient`
+
+```php
+<?php
+
+use Softlivery\WhatsappCloudApiClient\WhatsappCloudClient;
+use Softlivery\WhatsappCloudApiClient\Http\CurlHttpClient;
+
+$httpClient = new CurlHttpClient(); // Graph base URL + v25.0 by default
+$client = new WhatsappCloudClient($accessToken, $httpClient);
+
+// Messages
+$client->messages($phoneNumberId)->sendText('+15551234567', 'Hello');
+$client->messages($phoneNumberId)->sendTemplate(
+    '+15551234567',
+    'order_update',
+    'en_US',
+    [['type' => 'body', 'parameters' => [['type' => 'text', 'text' => '12345']]]]
+);
+
+// Media
+$mediaId = $client->media($phoneNumberId)->upload('/tmp/invoice.pdf', 'application/pdf')->getMediaId();
+
+// Templates
+$templates = $client->templates($wabaId)->list(['limit' => 20])->getData();
+
+// WABA
+$numbers = $client->waba($wabaId)->phoneNumbers()->getData();
+```
 
 ---
 
@@ -137,7 +173,7 @@ to a public URL. Once exposed, set up the webhook in the Facebook Developer Cons
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for more details.
+This project is licensed under the Apache-2.0 License. See the [LICENSE](./LICENSE) file for more details.
 
 ---
 
