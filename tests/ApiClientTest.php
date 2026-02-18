@@ -7,7 +7,7 @@ use Softlivery\WhatsappCloudApiClient\ApiClient;
 use Softlivery\WhatsappCloudApiClient\Exception\ApiResponseException;
 use Softlivery\WhatsappCloudApiClient\Http\HttpClient;
 use Softlivery\WhatsappCloudApiClient\Http\HttpResponse;
-use Softlivery\WhatsappCloudApiClient\Request\MessageApiRequest;
+use Softlivery\WhatsappCloudApiClient\Request\ApiRequest;
 use Softlivery\WhatsappCloudApiClient\Response\MessageApiResponse;
 
 class ApiClientTest extends TestCase
@@ -42,7 +42,7 @@ class ApiClientTest extends TestCase
 
         $httpClient->expects($this->once())
             ->method('send')
-            ->with($this->isInstanceOf(MessageApiRequest::class))
+            ->with($this->isInstanceOf(ApiRequest::class))
             ->willReturn($httpResponse);
 
         $apiClient = new ApiClient($accessToken, $fromPhoneNumberId, $httpClient);
@@ -69,7 +69,7 @@ class ApiClientTest extends TestCase
 
         $httpClient->expects($this->once())
             ->method('send')
-            ->with($this->isInstanceOf(MessageApiRequest::class))
+            ->with($this->isInstanceOf(ApiRequest::class))
             ->willReturn($httpResponse);
 
         $this->expectException(ApiResponseException::class);

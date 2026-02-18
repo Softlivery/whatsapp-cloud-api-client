@@ -4,8 +4,9 @@ namespace Softlivery\WhatsappCloudApiClient\Dto\Webhook;
 
 class EventEntryChangeValueMessageVideo
 {
-    public string $caption;
-    public string $sha256;
-    public string $id;
-    public string $mime_type;
+    public ?string $caption = null;
+    public ?string $sha256 = null;
+    public ?string $id = null;
+    public ?string $mime_type = null;
+    public ?string $url = null;
 }

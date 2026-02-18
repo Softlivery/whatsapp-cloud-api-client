@@ -42,7 +42,11 @@ class PayloadMapper implements PayloadMapperInterface
                     }
 
                     if (class_exists($nestedClass)) {
-                        $object->$key = array_map(fn($item) => (new PayloadMapper)->map($item, $nestedClass), $value);
+                        $mapper = new self();
+                        $object->$key = array_map(
+                            fn($item) => is_array($item) ? $mapper->map($item, $nestedClass) : $item,
+                            $value
+                        );
                     } else {
                         $object->$key = $value;
                     }
@@ -53,8 +57,8 @@ class PayloadMapper implements PayloadMapperInterface
                         'string' => (string)$value,
                         'bool' => boolval($value)
                     };
-                } elseif ($type && class_exists($type)) {
-                    $object->$key = (new PayloadMapper)->map($value, $type);
+                } elseif ($type && class_exists($type) && is_array($value)) {
+                    $object->$key = (new self())->map($value, $type);
                 } else {
                     $object->$key = $value;
                 }
