@@ -4,8 +4,8 @@ namespace Softlivery\WhatsappCloudApiClient\Response;
 
 class CodeExchangeApiResponse extends ApiResponse
 {
-    public function getAccessToken(): string
+    public function getAccessToken(): ?string
     {
-        return $this->httpResponse->getDecodedBody()["access_token"];
+        return $this->getString('access_token');
     }
 }

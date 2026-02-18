@@ -94,6 +94,9 @@ class WebhookEventHelper
     public function parse(string $payload): Event
     {
         $decodedPayload = json_decode($payload, true);
+        if (!is_array($decodedPayload)) {
+            throw new \InvalidArgumentException('Invalid JSON payload');
+        }
         return $this->payloadMapper->map($decodedPayload, Event::class);
     }
 

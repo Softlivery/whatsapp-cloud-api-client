@@ -4,23 +4,23 @@ namespace Softlivery\WhatsappCloudApiClient\Response;
 
 class GetPhoneNumberApiResponse extends ApiResponse
 {
-    public function getCodeVerificationStatus(): string
+    public function getCodeVerificationStatus(): ?string
     {
-        return $this->httpResponse->getDecodedBody()["code_verification_status"];
+        return $this->getString('code_verification_status');
     }
 
-    public function getDisplayPhoneNumber(): string
+    public function getDisplayPhoneNumber(): ?string
     {
-        return $this->httpResponse->getDecodedBody()["display_phone_number"];
+        return $this->getString('display_phone_number');
     }
 
-    public function getQualityRating(): string
+    public function getQualityRating(): ?string
     {
-        return $this->httpResponse->getDecodedBody()["quality_rating"];
+        return $this->getString('quality_rating');
     }
 
-    public function getVerifiedName(): string
+    public function getVerifiedName(): ?string
     {
-        return $this->httpResponse->getDecodedBody()["verified_name"];
+        return $this->getString('verified_name');
     }
 }

@@ -2,34 +2,41 @@
 
 namespace Softlivery\WhatsappCloudApiClient;
 
-use Softlivery\WhatsappCloudApiClient\Dto\Message\TextMessage;
+use Softlivery\WhatsappCloudApiClient\Client\MessagesClient;
 use Softlivery\WhatsappCloudApiClient\Http\HttpClient;
-use Softlivery\WhatsappCloudApiClient\Http\Middleware\BearerAuthMiddleware;
-use Softlivery\WhatsappCloudApiClient\Http\Middleware\ErrorRaisingClient;
-use Softlivery\WhatsappCloudApiClient\Http\Middleware\StaticTokenProvider;
-use Softlivery\WhatsappCloudApiClient\Request\RequestFactory;
 use Softlivery\WhatsappCloudApiClient\Response\MessageApiResponse;
 
 class ApiClient
 {
-    private string $access_token;
-    private string $from_phone_number_id;
-    private HttpClient $httpClient;
-    private BearerAuthMiddleware $authedHttpClient;
+    private MessagesClient $messagesClient;
 
     public function __construct(string $access_token, string $from_phone_number_id, HttpClient $httpClient)
     {
-        $this->access_token = $access_token;
-        $this->from_phone_number_id = $from_phone_number_id;
-        $this->httpClient = new ErrorRaisingClient($httpClient);
-        $this->authedHttpClient = new BearerAuthMiddleware($this->httpClient, new StaticTokenProvider($access_token));
+        $this->messagesClient = new MessagesClient($access_token, $from_phone_number_id, $httpClient);
     }
 
     public function sendTextMessage(string $to, string $body, bool $preview_url = false, ?string $reply_to = null): MessageApiResponse
     {
-        $message = new TextMessage($to, $body, $preview_url, $reply_to);
-        $request = RequestFactory::messageSend($this->from_phone_number_id, $message->toArray());
-        $response = $this->authedHttpClient->send($request);
-        return new MessageApiResponse($response);
+        return $this->messagesClient->sendText($to, $body, $preview_url, $reply_to);
+    }
+
+    public function sendTemplateMessage(string $to, string $templateName, string $languageCode, array $components = [], ?string $replyTo = null): MessageApiResponse
+    {
+        return $this->messagesClient->sendTemplate($to, $templateName, $languageCode, $components, $replyTo);
+    }
+
+    public function sendImageMessage(string $to, ?string $id = null, ?string $link = null, ?string $caption = null, ?string $replyTo = null): MessageApiResponse
+    {
+        return $this->messagesClient->sendImage($to, $id, $link, $caption, $replyTo);
+    }
+
+    public function sendDocumentMessage(string $to, ?string $id = null, ?string $link = null, ?string $caption = null, ?string $filename = null, ?string $replyTo = null): MessageApiResponse
+    {
+        return $this->messagesClient->sendDocument($to, $id, $link, $caption, $filename, $replyTo);
+    }
+
+    public function markAsRead(string $messageId): MessageApiResponse
+    {
+        return $this->messagesClient->markAsRead($messageId);
     }
 }

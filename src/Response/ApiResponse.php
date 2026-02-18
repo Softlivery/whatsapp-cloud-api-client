@@ -19,7 +19,7 @@ abstract class ApiResponse
 
     public function getStatusCode(): int
     {
-        return $this->httpResponse->getStatusCode();
+        return $this->httpResponse->getStatusCode() ?? 0;
     }
 
     /**

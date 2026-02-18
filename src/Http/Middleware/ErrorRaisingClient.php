@@ -3,6 +3,7 @@
 namespace Softlivery\WhatsappCloudApiClient\Http\Middleware;
 
 use Softlivery\WhatsappCloudApiClient\Exception\ApiResponseException;
+use Softlivery\WhatsappCloudApiClient\Exception\GraphApiException;
 use Softlivery\WhatsappCloudApiClient\Http\HttpClient;
 use Softlivery\WhatsappCloudApiClient\Http\HttpResponse;
 use Softlivery\WhatsappCloudApiClient\Request\ApiRequest;
@@ -27,6 +28,20 @@ final class ErrorRaisingClient implements HttpClient
             $payload = $response->getDecodedBody();
             $status = $response->getStatusCode() ?? 0;
             $message = $this->extractMessage($payload) ?? 'Unknown API error';
+
+            if (is_array($payload) && isset($payload['error']) && is_array($payload['error'])) {
+                $error = $payload['error'];
+                throw new GraphApiException(
+                    sprintf('[%d] %s', $status, $message),
+                    $status,
+                    isset($error['code']) && is_int($error['code']) ? $error['code'] : null,
+                    isset($error['error_subcode']) && is_int($error['error_subcode']) ? $error['error_subcode'] : null,
+                    isset($error['type']) && is_string($error['type']) ? $error['type'] : null,
+                    isset($error['fbtrace_id']) && is_string($error['fbtrace_id']) ? $error['fbtrace_id'] : null,
+                    $payload
+                );
+            }
+
             throw new ApiResponseException(sprintf('[%d] %s', $status, $message));
         }
 

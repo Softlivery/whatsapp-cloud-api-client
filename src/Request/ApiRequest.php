@@ -6,15 +6,34 @@ use JsonSerializable;
 
 class ApiRequest
 {
-    private array $headers;
+    protected array $headers;
     private string $method;
     private string $path;
     private int $timeout;
     private array $query = [];
     private mixed $body = null; // array|string|\JsonSerializable|null
 
-    public function __construct(string $path, string $method, int $timeout = 60)
+    public function __construct(
+        string $pathOrAccessToken,
+        string $methodOrPath,
+        int|string $timeoutOrMethod = 60,
+        ?int $legacyTimeout = null
+    )
     {
+        // Backward compatibility for legacy constructor:
+        // __construct(access_token, path, method, timeout)
+        if (is_string($timeoutOrMethod) && $legacyTimeout !== null) {
+            $accessToken = $pathOrAccessToken;
+            $path = $methodOrPath;
+            $method = $timeoutOrMethod;
+            $timeout = $legacyTimeout;
+        } else {
+            $accessToken = null;
+            $path = $pathOrAccessToken;
+            $method = $methodOrPath;
+            $timeout = is_int($timeoutOrMethod) ? $timeoutOrMethod : 60;
+        }
+
         $this->path = $path;
         $this->method = $method;
         $this->timeout = $timeout;
@@ -22,6 +41,10 @@ class ApiRequest
         $this->headers = [
             'Content-Type' => 'application/json',
         ];
+
+        if (is_string($accessToken) && $accessToken !== '') {
+            $this->headers['Authorization'] = "Bearer $accessToken";
+        }
     }
 
     // Fluent API
