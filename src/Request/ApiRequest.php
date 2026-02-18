@@ -2,24 +2,102 @@
 
 namespace Softlivery\WhatsappCloudApiClient\Request;
 
-abstract class ApiRequest
-{
-    public array $headers = [];
-    public string $method;
-    public string $path;
-    public int $timeout = 60;
+use JsonSerializable;
 
-    public function __construct(string $access_token, string $path, string $method, int $timeout = 60)
+class ApiRequest
+{
+    protected array $headers;
+    private string $method;
+    private string $path;
+    private int $timeout;
+    private array $query = [];
+    private mixed $body = null; // array|string|\JsonSerializable|null
+
+    public function __construct(
+        string $pathOrAccessToken,
+        string $methodOrPath,
+        int|string $timeoutOrMethod = 60,
+        ?int $legacyTimeout = null
+    )
     {
+        // Backward compatibility for legacy constructor:
+        // __construct(access_token, path, method, timeout)
+        if (is_string($timeoutOrMethod) && $legacyTimeout !== null) {
+            $accessToken = $pathOrAccessToken;
+            $path = $methodOrPath;
+            $method = $timeoutOrMethod;
+            $timeout = $legacyTimeout;
+        } else {
+            $accessToken = null;
+            $path = $pathOrAccessToken;
+            $method = $methodOrPath;
+            $timeout = is_int($timeoutOrMethod) ? $timeoutOrMethod : 60;
+        }
+
         $this->path = $path;
         $this->method = $method;
         $this->timeout = $timeout;
 
         $this->headers = [
-            'Authorization' => "Bearer $access_token",
             'Content-Type' => 'application/json',
         ];
+
+        if (is_string($accessToken) && $accessToken !== '') {
+            $this->headers['Authorization'] = "Bearer $accessToken";
+        }
     }
+
+    // Fluent API
+
+    public function withHeader(string $name, string $value): self
+    {
+        $clone = clone $this;
+        $clone->headers[$name] = $value;
+        return $clone;
+    }
+
+    public function withHeaders(array $headers): self
+    {
+        $clone = clone $this;
+        foreach ($headers as $k => $v) {
+            $clone->headers[$k] = $v;
+        }
+        return $clone;
+    }
+
+    public function withQuery(array $params): self
+    {
+        $clone = clone $this;
+        $clone->query = array_merge($clone->query, $params);
+        return $clone;
+    }
+
+    public function withJsonBody(array|JsonSerializable $body): self
+    {
+        $clone = clone $this;
+        $clone->body = $body;
+        // ensure content type is present
+        if (!isset($clone->headers['Content-Type'])) {
+            $clone->headers['Content-Type'] = 'application/json';
+        }
+        return $clone;
+    }
+
+    public function withRawBody(?string $body): self
+    {
+        $clone = clone $this;
+        $clone->body = $body;
+        return $clone;
+    }
+
+    public function withTimeout(int $seconds): self
+    {
+        $clone = clone $this;
+        $clone->timeout = $seconds;
+        return $clone;
+    }
+
+    // Accessors expected by HttpClient
 
     public function getHeaders(): array
     {
@@ -31,9 +109,19 @@ abstract class ApiRequest
         return $this->method;
     }
 
+    /**
+     * Returns the path with query parameters appended (if any).
+     */
     public function getPath(): string
     {
-        return $this->path;
+        if ($this->query === []) {
+            return $this->path;
+        }
+        $query = http_build_query($this->query);
+        if ($query === '') {
+            return $this->path;
+        }
+        return rtrim($this->path, '?') . '?' . $query;
     }
 
     public function getTimeout(): int
@@ -41,8 +129,24 @@ abstract class ApiRequest
         return $this->timeout;
     }
 
+    /**
+     * Returns the serialized body as string or null.
+     */
     public function getBody(): ?string
     {
-        return null;
+        if ($this->body === null) {
+            return null;
+        }
+        if (is_string($this->body)) {
+            return $this->body;
+        }
+        if ($this->body instanceof JsonSerializable) {
+            return json_encode($this->body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        if (is_array($this->body)) {
+            return json_encode($this->body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        // Fallback for unexpected types
+        return (string)$this->body;
     }
 }
