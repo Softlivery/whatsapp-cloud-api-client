@@ -84,6 +84,8 @@ final class RequestFactory
 
     /**
      * GET /oauth/access_token?client_id=...&client_secret=...&code=...&redirect_uri=...
+     *
+     * redirect_uri is intentionally always included, including empty string values.
      */
     public static function exchangeCode(string $clientId, string $clientSecret, string $code, string $redirectUri, int $timeout = 60): ApiRequest
     {

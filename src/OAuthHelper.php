@@ -15,43 +15,43 @@ use Softlivery\WhatsappCloudApiClient\Response\SubscribeAppApiResponse;
 use Softlivery\WhatsappCloudApiClient\Response\TemplatesApiResponse;
 use Softlivery\WhatsappCloudApiClient\Response\WabaApiResponse;
 
-class oAuthHelper
+class OAuthHelper
 {
-    private string $client_id;
-    private string $client_secret;
+    private string $clientId;
+    private string $clientSecret;
     private HttpClient $httpClient;
 
-    public function __construct(string $client_id, string $client_secret, HttpClient $httpClient)
+    public function __construct(string $clientId, string $clientSecret, HttpClient $httpClient)
     {
-        $this->client_id = $client_id;
-        $this->client_secret = $client_secret;
+        $this->clientId = $clientId;
+        $this->clientSecret = $clientSecret;
         $this->httpClient = new ErrorRaisingClient($httpClient);
     }
 
-    public function exchangeCode(string $code, string $redirect_url): CodeExchangeApiResponse
+    public function exchangeCode(string $code, string $redirectUrl): CodeExchangeApiResponse
     {
-        $request = RequestFactory::exchangeCode($this->client_id, $this->client_secret, $code, $redirect_url);
+        $request = RequestFactory::exchangeCode($this->clientId, $this->clientSecret, $code, $redirectUrl);
         $response = $this->httpClient->send($request);
         return new CodeExchangeApiResponse($response);
     }
 
-    public function assignedUsers(string $business_id, string $access_token, string $waba_id): AssignedUsersApiResponse
+    public function assignedUsers(string $businessId, string $accessToken, string $wabaId): AssignedUsersApiResponse
     {
-        $request = RequestFactory::assignedUsers($waba_id, $business_id, $access_token);
+        $request = RequestFactory::assignedUsers($wabaId, $businessId, $accessToken);
         $response = $this->httpClient->send($request);
         return new AssignedUsersApiResponse($response);
     }
 
-    public function assignUser(string $user_id, string $access_token, string $waba_id): AssignUserApiResponse
+    public function assignUser(string $userId, string $accessToken, string $wabaId): AssignUserApiResponse
     {
-        $request = RequestFactory::assignUser($waba_id, $user_id, $access_token);
+        $request = RequestFactory::assignUser($wabaId, $userId, $accessToken);
         $response = $this->httpClient->send($request);
         return new AssignUserApiResponse($response);
     }
 
-    public function assignPartner(string $partner_id, string $access_token, string $waba_id): AssignPartnerApiResponse
+    public function assignPartner(string $partnerId, string $accessToken, string $wabaId): AssignPartnerApiResponse
     {
-        $request = RequestFactory::assignPartner($waba_id, $partner_id, $access_token);
+        $request = RequestFactory::assignPartner($wabaId, $partnerId, $accessToken);
         $response = $this->httpClient->send($request);
         return new AssignPartnerApiResponse($response);
     }
@@ -63,9 +63,9 @@ class oAuthHelper
         return new SubscribeAppApiResponse($response);
     }
 
-    public function getPhoneNumber(string $phonenumber_id, string $accessToken)
+    public function getPhoneNumber(string $phoneNumberId, string $accessToken): GetPhoneNumberApiResponse
     {
-        $request = RequestFactory::getPhoneNumber($phonenumber_id, $accessToken);
+        $request = RequestFactory::getPhoneNumber($phoneNumberId, $accessToken);
         $response = $this->httpClient->send($request);
         return new GetPhoneNumberApiResponse($response);
     }
