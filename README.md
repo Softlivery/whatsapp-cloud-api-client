@@ -25,6 +25,37 @@ composer require softlivery/whatsapp-cloud-api-client
 
 ---
 
+## OAuth Code Exchange Contract
+
+For embedded signup flows, use `OAuthHelper::exchangeCode($code, $redirectUri)` to request:
+
+- `GET /oauth/access_token`
+- query params: `client_id`, `client_secret`, `code`, `redirect_uri`
+
+`redirect_uri` behavior:
+
+- The library always includes `redirect_uri` in the request query.
+- Empty `redirect_uri` is currently allowed for compatibility.
+- For production stability, prefer sending the exact redirect URI configured in Meta/Facebook app settings.
+
+Example:
+
+```php
+<?php
+
+use Softlivery\WhatsappCloudApiClient\Http\CurlHttpClient;
+use Softlivery\WhatsappCloudApiClient\OAuthHelper;
+
+$helper = new OAuthHelper(
+    'your_meta_client_id',
+    'your_meta_client_secret',
+    new CurlHttpClient()
+);
+
+$response = $helper->exchangeCode($embeddedSignupCode, 'https://app.example.com/meta/callback');
+$accessToken = $response->getAccessToken();
+```
+
 ## Webhook Handling Guide
 
 When integrating the Whatsapp Cloud API webhook, there are typically two operations to handle:
@@ -180,3 +211,15 @@ This project is licensed under the Apache-2.0 License. See the [LICENSE](./LICEN
 ## Contributing
 
 Contributions are welcome! Feel free to open issues or submit pull requests.
+
+---
+
+## Upgrade Notes
+
+### 1.0.0
+
+- Removed legacy `oAuthHelper`.
+- Removed deprecated `CodeExchangeApiRequest`; use `RequestFactory::exchangeCode`.
+- Introduced canonical `OAuthHelper` naming.
+- Added deterministic tests for OAuth code exchange request construction.
+- `redirect_uri` remains allowed as empty string for compatibility, and is always included in the query.

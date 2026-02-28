@@ -54,4 +54,41 @@ class RequestFactoryTest extends TestCase
         $body = json_decode((string)$request->getBody(), true);
         $this->assertSame(1, $body['x']);
     }
+
+    public function testExchangeCodeRequestIncludesExpectedQueryFields(): void
+    {
+        $request = RequestFactory::exchangeCode(
+            'client_123',
+            'secret_abc',
+            'code_xyz',
+            'https://app.example.test/callback'
+        );
+
+        $this->assertSame('GET', $request->getMethod());
+        $parts = parse_url($request->getPath());
+        $this->assertSame('oauth/access_token', $parts['path'] ?? null);
+
+        parse_str($parts['query'] ?? '', $query);
+        $this->assertSame('client_123', $query['client_id'] ?? null);
+        $this->assertSame('secret_abc', $query['client_secret'] ?? null);
+        $this->assertSame('code_xyz', $query['code'] ?? null);
+        $this->assertSame('https://app.example.test/callback', $query['redirect_uri'] ?? null);
+    }
+
+    public function testExchangeCodeRequestAllowsEmptyRedirectUri(): void
+    {
+        $request = RequestFactory::exchangeCode(
+            'client_123',
+            'secret_abc',
+            'code_xyz',
+            ''
+        );
+
+        $parts = parse_url($request->getPath());
+        $this->assertSame('oauth/access_token', $parts['path'] ?? null);
+
+        parse_str($parts['query'] ?? '', $query);
+        $this->assertArrayHasKey('redirect_uri', $query);
+        $this->assertSame('', $query['redirect_uri']);
+    }
 }
