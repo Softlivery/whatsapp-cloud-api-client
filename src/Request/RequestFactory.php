@@ -196,6 +196,17 @@ final class RequestFactory
     }
 
     /**
+     * POST /{templateId}
+     *
+     * @param array<string,mixed>|JsonSerializable $template
+     */
+    public static function editMessageTemplate(string $templateId, array|JsonSerializable $template, int $timeout = 60): ApiRequest
+    {
+        return (new ApiRequest($templateId, 'POST', $timeout))
+            ->withJsonBody($template);
+    }
+
+    /**
      * DELETE /{wabaId}/message_templates?name={name}
      *
      * @param array<string,mixed> $extraQuery

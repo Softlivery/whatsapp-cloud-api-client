@@ -105,6 +105,13 @@ class OAuthHelper
         return new GenericApiResponse($response);
     }
 
+    public function editMessageTemplate(string $templateId, array $template): GenericApiResponse
+    {
+        $request = RequestFactory::editMessageTemplate($templateId, $template);
+        $response = $this->httpClient->send($request);
+        return new GenericApiResponse($response);
+    }
+
     public function deleteMessageTemplate(string $wabaId, string $name, array $extraQuery = []): GenericApiResponse
     {
         $request = RequestFactory::deleteMessageTemplate($wabaId, $name, $extraQuery);

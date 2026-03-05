@@ -28,6 +28,13 @@ final class TemplatesClient extends BaseClient
         return new GenericApiResponse($response);
     }
 
+    /** @param array<string,mixed> $payload */
+    public function edit(string $templateId, array $payload): GenericApiResponse
+    {
+        $response = $this->sendRequest(RequestFactory::editMessageTemplate($templateId, $payload));
+        return new GenericApiResponse($response);
+    }
+
     /** @param array<string,mixed> $extraQuery */
     public function delete(string $name, array $extraQuery = []): GenericApiResponse
     {
