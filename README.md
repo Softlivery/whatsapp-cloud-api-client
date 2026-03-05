@@ -102,6 +102,10 @@ $mediaId = $client->media($phoneNumberId)->upload('/tmp/invoice.pdf', 'applicati
 
 // Templates
 $templates = $client->templates($wabaId)->list(['limit' => 20])->getData();
+$client->templates($wabaId)->edit('template_id_123', [
+    'category' => 'UTILITY',
+    'components' => [['type' => 'BODY', 'text' => 'Updated body']],
+]);
 
 // WABA
 $numbers = $client->waba($wabaId)->phoneNumbers()->getData();
