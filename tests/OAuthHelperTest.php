@@ -56,4 +56,29 @@ class OAuthHelperTest extends TestCase
         parse_str($parts['query'] ?? '', $query);
         $this->assertSame('https://app.example.test/callback', $query['redirect_uri'] ?? null);
     }
+
+    public function testEditMessageTemplateSendsTemplateIdPath(): void
+    {
+        $httpClient = new class implements HttpClient {
+            public ?ApiRequest $lastRequest = null;
+
+            public function send(ApiRequest $request): HttpResponse
+            {
+                $this->lastRequest = $request;
+                return new HttpResponse('{"success":true}', 200);
+            }
+        };
+
+        $helper = new OAuthHelper('client_123', 'secret_abc', $httpClient);
+        $response = $helper->editMessageTemplate('template_123', [
+            'components' => [
+                ['type' => 'BODY', 'text' => 'New body'],
+            ],
+        ]);
+
+        $this->assertSame(true, $response->json()['success'] ?? null);
+        $this->assertNotNull($httpClient->lastRequest);
+        $this->assertSame('POST', $httpClient->lastRequest->getMethod());
+        $this->assertSame('template_123', $httpClient->lastRequest->getPath());
+    }
 }

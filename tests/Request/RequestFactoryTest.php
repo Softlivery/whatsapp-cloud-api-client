@@ -35,6 +35,21 @@ class RequestFactoryTest extends TestCase
         $this->assertStringContainsString('name=welcome_template', $request->getPath());
     }
 
+    public function testEditMessageTemplateRequest(): void
+    {
+        $request = RequestFactory::editMessageTemplate('template123', [
+            'components' => [
+                ['type' => 'BODY', 'text' => 'Updated body'],
+            ],
+        ]);
+
+        $this->assertSame('POST', $request->getMethod());
+        $this->assertSame('template123', $request->getPath());
+        $body = json_decode((string)$request->getBody(), true);
+        $this->assertSame('BODY', $body['components'][0]['type']);
+        $this->assertSame('Updated body', $body['components'][0]['text']);
+    }
+
     public function testUpdateBusinessProfileRequest(): void
     {
         $request = RequestFactory::updateBusinessProfile('phone123', ['about' => 'Support team']);
