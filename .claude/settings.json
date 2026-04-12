@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/php-lint-on-edit.sh"
+          }
+        ]
+      }
+    ],
+    "PreBash": [
+      {
+        "matcher": "git push",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/guard-git-push-main.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
