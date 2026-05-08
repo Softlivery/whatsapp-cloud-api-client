@@ -34,9 +34,14 @@ final class WabaClient extends BaseClient
         return new GenericApiResponse($response);
     }
 
-    public function subscribeApp(string $accessToken): GenericApiResponse
-    {
-        $response = $this->sendRequest(RequestFactory::subscribeApp($this->wabaId, $accessToken));
+    public function subscribeApp(
+        string $accessToken,
+        ?string $overrideCallbackUri = null,
+        ?string $verifyToken = null
+    ): GenericApiResponse {
+        $response = $this->sendRequest(
+            RequestFactory::subscribeApp($this->wabaId, $accessToken, $overrideCallbackUri, $verifyToken)
+        );
         return new GenericApiResponse($response);
     }
 

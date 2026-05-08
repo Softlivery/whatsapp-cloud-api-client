@@ -68,10 +68,61 @@ final class RequestFactory
 
     /**
      * POST /{wabaId}/subscribed_apps
+     *
+     * Optionally accepts override callback / verify token to point a single
+     * WABA at a different webhook URL. The set of `subscribed_fields` is
+     * configured at the App level (`/{appId}/subscriptions`), not here.
      */
-    public static function subscribeApp(string $wabaId, string $accessToken, int $timeout = 60): ApiRequest
-    {
-        return (new ApiRequest("{$wabaId}/subscribed_apps", 'POST', $timeout))->withHeaders(['Authorization' => 'Bearer ' . $accessToken]);
+    public static function subscribeApp(
+        string $wabaId,
+        string $accessToken,
+        ?string $overrideCallbackUri = null,
+        ?string $verifyToken = null,
+        int $timeout = 60
+    ): ApiRequest {
+        $request = (new ApiRequest("{$wabaId}/subscribed_apps", 'POST', $timeout))
+            ->withHeaders(['Authorization' => 'Bearer ' . $accessToken]);
+
+        $query = [];
+        if ($overrideCallbackUri !== null && $overrideCallbackUri !== '') {
+            $query['override_callback_uri'] = $overrideCallbackUri;
+            if ($verifyToken !== null && $verifyToken !== '') {
+                $query['verify_token'] = $verifyToken;
+            }
+        }
+        return $query !== [] ? $request->withQuery($query) : $request;
+    }
+
+    /**
+     * POST /{appId}/subscriptions
+     *
+     * Configures the webhook fields the App receives for an object type
+     * (typically `whatsapp_business_account`). One-shot, idempotent — Meta
+     * replaces the prior subscription configuration with what is sent.
+     *
+     * Requires an App access token (`{appId}|{appSecret}`).
+     *
+     * @param string[] $fields e.g. ['messages', 'message_template_status_update',
+     *                         'smb_message_echoes', 'smb_app_state_sync', 'history',
+     *                         'messaging_handovers']
+     */
+    public static function setAppSubscription(
+        string $appId,
+        string $object,
+        array $fields,
+        string $callbackUrl,
+        string $verifyToken,
+        string $appAccessToken,
+        int $timeout = 60
+    ): ApiRequest {
+        return (new ApiRequest("{$appId}/subscriptions", 'POST', $timeout))
+            ->withQuery([
+                'object'       => $object,
+                'callback_url' => $callbackUrl,
+                'fields'       => implode(',', $fields),
+                'verify_token' => $verifyToken,
+                'access_token' => $appAccessToken,
+            ]);
     }
 
     /**

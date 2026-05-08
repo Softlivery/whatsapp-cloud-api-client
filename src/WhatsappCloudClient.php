@@ -2,6 +2,7 @@
 
 namespace Softlivery\WhatsappCloudApiClient;
 
+use Softlivery\WhatsappCloudApiClient\Client\AppClient;
 use Softlivery\WhatsappCloudApiClient\Client\MediaClient;
 use Softlivery\WhatsappCloudApiClient\Client\MessagesClient;
 use Softlivery\WhatsappCloudApiClient\Client\TemplatesClient;
@@ -12,6 +13,15 @@ final class WhatsappCloudClient
 {
     public function __construct(private readonly string $accessToken, private readonly HttpClient $httpClient)
     {
+    }
+
+    /**
+     * App-scoped operations. Pass an App access token (`{appId}|{appSecret}`),
+     * not a System User token, since these endpoints authenticate the App itself.
+     */
+    public function app(string $appId, string $appAccessToken): AppClient
+    {
+        return new AppClient($appAccessToken, $appId, $this->httpClient);
     }
 
     public function messages(string $phoneNumberId): MessagesClient
