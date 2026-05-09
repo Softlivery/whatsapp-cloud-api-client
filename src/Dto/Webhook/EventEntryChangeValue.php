@@ -12,6 +12,8 @@ class EventEntryChangeValue
     public ?array $messages = null;
     /** @var EventEntryChangeValueStatus[] */
     public ?array $statuses = null;
+    /** @var EventEntryChangeValueMessageEcho[] */
+    public ?array $message_echoes = null;
     public ?EventEntryChangeValueWabaInfo $waba_info = null;
 
     public ?string $event = null;
@@ -36,6 +38,8 @@ class EventEntryChangeValue
             return 'messages';
         } elseif ($this->statuses !== null) {
             return 'statuses';
+        } elseif ($this->message_echoes !== null) {
+            return 'smb_message_echoes';
         } elseif ($this->message_template_id !== null || $this->message_template_name !== null) {
             return 'message_template_status_update';
         } elseif ($this->event !== null || $this->account_offboarded !== null || $this->account_reconnected !== null) {
