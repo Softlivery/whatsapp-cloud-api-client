@@ -32,6 +32,27 @@ class EventEntryChangeValue
     public ?string $new_quality_score = null;
     public ?string $previous_quality_score = null;
 
+    /** Populated for the `phone_number_quality_update` webhook. */
+    public ?string $display_phone_number = null;
+    public ?string $current_limit = null;
+    public ?string $old_quality_score = null;
+
+    /** Populated for the `account_review_update` webhook. */
+    public ?string $decision = null;
+
+    /** Populated for the `account_alerts` webhook. */
+    public ?string $alert_severity = null;
+    public ?string $alert_type = null;
+    public ?string $entity_type = null;
+    public ?string $entity_id = null;
+
+    /** Populated for the `business_capability_update` webhook. */
+    public ?int $max_phone_numbers_per_business = null;
+    public ?int $max_daily_conversation_per_phone = null;
+
+    /** @var EventEntryChangeValueHistoryChunk[] Populated for the `history` webhook. */
+    public ?array $history = null;
+
     public function type(): string
     {
         if ($this->messages !== null) {
@@ -40,8 +61,20 @@ class EventEntryChangeValue
             return 'statuses';
         } elseif ($this->message_echoes !== null) {
             return 'smb_message_echoes';
+        } elseif ($this->history !== null) {
+            return 'history';
         } elseif ($this->message_template_id !== null || $this->message_template_name !== null) {
-            return 'message_template_status_update';
+            return $this->new_quality_score !== null || $this->old_quality_score !== null
+                ? 'message_template_quality_update'
+                : 'message_template_status_update';
+        } elseif ($this->current_limit !== null || $this->old_quality_score !== null) {
+            return 'phone_number_quality_update';
+        } elseif ($this->decision !== null) {
+            return 'account_review_update';
+        } elseif ($this->alert_severity !== null || $this->alert_type !== null) {
+            return 'account_alerts';
+        } elseif ($this->max_phone_numbers_per_business !== null || $this->max_daily_conversation_per_phone !== null) {
+            return 'business_capability_update';
         } elseif ($this->event !== null || $this->account_offboarded !== null || $this->account_reconnected !== null) {
             return 'event';
         } else {

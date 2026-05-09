@@ -3,35 +3,47 @@
 namespace Softlivery\WhatsappCloudApiClient\Tests\Webhook;
 
 use PHPUnit\Framework\TestCase;
+use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueHistoryChunk;
+use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueHistoryMessage;
+use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueHistoryThread;
 use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueMessageEcho;
 use Softlivery\WhatsappCloudApiClient\Webhook\WebhookEventHelper;
 
 class WebhookCoexistenceEventsTest extends TestCase
 {
-    private const SECRET = 'secret';
+    private const SECRET = 'test-secret';
+
+    // Fictional identifiers — never use real WABA / phone / BSUID values in
+    // tests. The numeric strings are clearly placeholders, not E.164 numbers
+    // tied to any actual WhatsApp account.
+    private const WABA_ID         = '111111111111111';
+    private const PHONE_NUMBER_ID = '222222222222222';
+    private const BUSINESS_PHONE  = '15550000000';
+    private const CUSTOMER_PHONE  = '15550000001';
+    private const CUSTOMER_BSUID  = 'BSUID-CUSTOMER-1';
 
     public function testParsesSmbMessageEchoTextEvent(): void
     {
         $payload = $this->encode([
             'object' => 'whatsapp_business_account',
             'entry' => [[
-                'id' => '111111111111111',
+                'id' => self::WABA_ID,
                 'changes' => [[
                     'field' => 'smb_message_echoes',
                     'value' => [
                         'messaging_product' => 'whatsapp',
                         'metadata' => [
-                            'display_phone_number' => '15550000000',
-                            'phone_number_id' => '222222222222222',
+                            'display_phone_number' => self::BUSINESS_PHONE,
+                            'phone_number_id' => self::PHONE_NUMBER_ID,
                         ],
                         'contacts' => [[
-                            'wa_id' => '15550000001',
-                            'user_id' => 'BSUID-CUSTOMER-1',
+                            'wa_id' => self::CUSTOMER_PHONE,
+                            'user_id' => self::CUSTOMER_BSUID,
                         ]],
                         'message_echoes' => [[
-                            'from' => '15550000000',
-                            'to' => '15550000001',
-                            'to_user_id' => 'BSUID-CUSTOMER-1',
+                            'from' => self::BUSINESS_PHONE,
+                            'to' => self::CUSTOMER_PHONE,
+                            'to_user_id' => self::CUSTOMER_BSUID,
                             'id' => 'wamid.test-echo-text',
                             'timestamp' => '1700000000',
                             'type' => 'text',
@@ -54,9 +66,9 @@ class WebhookCoexistenceEventsTest extends TestCase
 
         $echo = $value->message_echoes[0];
         self::assertInstanceOf(EventEntryChangeValueMessageEcho::class, $echo);
-        self::assertSame('15550000000', $echo->from);
-        self::assertSame('15550000001', $echo->to);
-        self::assertSame('BSUID-CUSTOMER-1', $echo->to_user_id);
+        self::assertSame(self::BUSINESS_PHONE, $echo->from);
+        self::assertSame(self::CUSTOMER_PHONE, $echo->to);
+        self::assertSame(self::CUSTOMER_BSUID, $echo->to_user_id);
         self::assertSame('wamid.test-echo-text', $echo->id);
         self::assertSame('1700000000', $echo->timestamp);
         self::assertSame('text', $echo->type);
@@ -69,29 +81,29 @@ class WebhookCoexistenceEventsTest extends TestCase
         $payload = $this->encode([
             'object' => 'whatsapp_business_account',
             'entry' => [[
-                'id' => '111111111111111',
+                'id' => self::WABA_ID,
                 'changes' => [[
                     'field' => 'smb_message_echoes',
                     'value' => [
                         'messaging_product' => 'whatsapp',
                         'metadata' => [
-                            'display_phone_number' => '15550000000',
-                            'phone_number_id' => '222222222222222',
+                            'display_phone_number' => self::BUSINESS_PHONE,
+                            'phone_number_id' => self::PHONE_NUMBER_ID,
                         ],
                         'contacts' => [[
-                            'wa_id' => '15550000001',
+                            'wa_id' => self::CUSTOMER_PHONE,
                         ]],
                         'message_echoes' => [[
-                            'from' => '15550000000',
-                            'to' => '15550000001',
+                            'from' => self::BUSINESS_PHONE,
+                            'to' => self::CUSTOMER_PHONE,
                             'id' => 'wamid.test-echo-image',
                             'timestamp' => '1700000100',
                             'type' => 'image',
                             'image' => [
                                 'caption' => 'fictional image caption',
                                 'mime_type' => 'image/jpeg',
-                                'sha256' => 'abc123',
-                                'id' => '999000111',
+                                'sha256' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                                'id' => '333333333333333',
                             ],
                         ]],
                     ],
@@ -108,30 +120,228 @@ class WebhookCoexistenceEventsTest extends TestCase
         self::assertSame('image/jpeg', $echo->image->mime_type);
     }
 
+    public function testParsesHistoryWebhookWithThreadsAndMessages(): void
+    {
+        $payload = $this->encode([
+            'object' => 'whatsapp_business_account',
+            'entry' => [[
+                'id' => self::WABA_ID,
+                'changes' => [[
+                    'field' => 'history',
+                    'value' => [
+                        'messaging_product' => 'whatsapp',
+                        'metadata' => [
+                            'display_phone_number' => self::BUSINESS_PHONE,
+                            'phone_number_id' => self::PHONE_NUMBER_ID,
+                        ],
+                        'history' => [[
+                            'metadata' => [
+                                'phase' => 0,
+                                'chunk_order' => 1,
+                                'progress' => 100,
+                            ],
+                            'threads' => [[
+                                'id' => self::CUSTOMER_PHONE,
+                                'context' => [
+                                    'wa_id' => self::CUSTOMER_PHONE,
+                                    'user_id' => self::CUSTOMER_BSUID,
+                                ],
+                                'messages' => [[
+                                    'from' => self::CUSTOMER_PHONE,
+                                    'from_user_id' => self::CUSTOMER_BSUID,
+                                    'id' => 'wamid.test-history-1',
+                                    'timestamp' => '1700000200',
+                                    'type' => 'text',
+                                    'text' => ['body' => 'fictional historic message'],
+                                    'history_context' => ['status' => 'delivered'],
+                                ]],
+                            ]],
+                        ]],
+                    ],
+                ]],
+            ]],
+        ]);
+
+        $event = $this->parse($payload);
+        $value = $event->entry[0]->changes[0]->value;
+
+        self::assertSame('history', $value->type());
+        self::assertIsArray($value->history);
+        self::assertCount(1, $value->history);
+
+        $chunk = $value->history[0];
+        self::assertInstanceOf(EventEntryChangeValueHistoryChunk::class, $chunk);
+        self::assertNotNull($chunk->metadata);
+        self::assertSame(0, $chunk->metadata->phase);
+        self::assertSame(1, $chunk->metadata->chunk_order);
+        self::assertSame(100, $chunk->metadata->progress);
+
+        self::assertCount(1, $chunk->threads);
+        $thread = $chunk->threads[0];
+        self::assertInstanceOf(EventEntryChangeValueHistoryThread::class, $thread);
+        self::assertSame(self::CUSTOMER_PHONE, $thread->id);
+        self::assertNotNull($thread->context);
+        self::assertSame(self::CUSTOMER_PHONE, $thread->context->wa_id);
+        self::assertSame(self::CUSTOMER_BSUID, $thread->context->user_id);
+
+        self::assertCount(1, $thread->messages);
+        $message = $thread->messages[0];
+        self::assertInstanceOf(EventEntryChangeValueHistoryMessage::class, $message);
+        self::assertSame(self::CUSTOMER_PHONE, $message->from);
+        self::assertSame(self::CUSTOMER_BSUID, $message->from_user_id);
+        self::assertSame('text', $message->type);
+        self::assertSame('fictional historic message', $message->text->body);
+        self::assertNotNull($message->history_context);
+        self::assertSame('delivered', $message->history_context->status);
+    }
+
+    public function testParsesPhoneNumberQualityUpdate(): void
+    {
+        $payload = $this->encode([
+            'object' => 'whatsapp_business_account',
+            'entry' => [[
+                'id' => self::WABA_ID,
+                'changes' => [[
+                    'field' => 'phone_number_quality_update',
+                    'value' => [
+                        'display_phone_number' => self::BUSINESS_PHONE,
+                        'event' => 'FLAGGED',
+                        'current_limit' => 'TIER_1000',
+                        'old_quality_score' => 'GREEN',
+                        'new_quality_score' => 'YELLOW',
+                    ],
+                ]],
+            ]],
+        ]);
+
+        $value = $this->parse($payload)->entry[0]->changes[0]->value;
+        self::assertSame('phone_number_quality_update', $value->type());
+        self::assertSame(self::BUSINESS_PHONE, $value->display_phone_number);
+        self::assertSame('FLAGGED', $value->event);
+        self::assertSame('TIER_1000', $value->current_limit);
+        self::assertSame('GREEN', $value->old_quality_score);
+        self::assertSame('YELLOW', $value->new_quality_score);
+    }
+
+    public function testParsesAccountReviewUpdate(): void
+    {
+        $payload = $this->encode([
+            'object' => 'whatsapp_business_account',
+            'entry' => [[
+                'id' => self::WABA_ID,
+                'changes' => [[
+                    'field' => 'account_review_update',
+                    'value' => [
+                        'decision' => 'APPROVED',
+                        'reason' => 'fictional review reason',
+                    ],
+                ]],
+            ]],
+        ]);
+
+        $value = $this->parse($payload)->entry[0]->changes[0]->value;
+        self::assertSame('account_review_update', $value->type());
+        self::assertSame('APPROVED', $value->decision);
+        self::assertSame('fictional review reason', $value->reason);
+    }
+
+    public function testParsesAccountAlerts(): void
+    {
+        $payload = $this->encode([
+            'object' => 'whatsapp_business_account',
+            'entry' => [[
+                'id' => self::WABA_ID,
+                'changes' => [[
+                    'field' => 'account_alerts',
+                    'value' => [
+                        'alert_severity' => 'HIGH',
+                        'alert_type' => 'POLICY_VIOLATION',
+                        'entity_type' => 'WABA',
+                        'entity_id' => self::WABA_ID,
+                    ],
+                ]],
+            ]],
+        ]);
+
+        $value = $this->parse($payload)->entry[0]->changes[0]->value;
+        self::assertSame('account_alerts', $value->type());
+        self::assertSame('HIGH', $value->alert_severity);
+        self::assertSame('POLICY_VIOLATION', $value->alert_type);
+        self::assertSame('WABA', $value->entity_type);
+        self::assertSame(self::WABA_ID, $value->entity_id);
+    }
+
+    public function testParsesBusinessCapabilityUpdate(): void
+    {
+        $payload = $this->encode([
+            'object' => 'whatsapp_business_account',
+            'entry' => [[
+                'id' => self::WABA_ID,
+                'changes' => [[
+                    'field' => 'business_capability_update',
+                    'value' => [
+                        'max_phone_numbers_per_business' => 25,
+                        'max_daily_conversation_per_phone' => 1000,
+                    ],
+                ]],
+            ]],
+        ]);
+
+        $value = $this->parse($payload)->entry[0]->changes[0]->value;
+        self::assertSame('business_capability_update', $value->type());
+        self::assertSame(25, $value->max_phone_numbers_per_business);
+        self::assertSame(1000, $value->max_daily_conversation_per_phone);
+    }
+
+    public function testParsesMessageTemplateQualityUpdate(): void
+    {
+        $payload = $this->encode([
+            'object' => 'whatsapp_business_account',
+            'entry' => [[
+                'id' => self::WABA_ID,
+                'changes' => [[
+                    'field' => 'message_template_quality_update',
+                    'value' => [
+                        'message_template_id' => 99999,
+                        'message_template_name' => 'fictional_template',
+                        'message_template_language' => 'en_US',
+                        'previous_quality_score' => 'GREEN',
+                        'new_quality_score' => 'YELLOW',
+                    ],
+                ]],
+            ]],
+        ]);
+
+        $value = $this->parse($payload)->entry[0]->changes[0]->value;
+        self::assertSame('message_template_quality_update', $value->type());
+        self::assertSame(99999, $value->message_template_id);
+        self::assertSame('YELLOW', $value->new_quality_score);
+    }
+
     public function testContactProfileIsOptionalForCoexistenceContacts(): void
     {
         $payload = $this->encode([
             'object' => 'whatsapp_business_account',
             'entry' => [[
-                'id' => 'waba',
+                'id' => self::WABA_ID,
                 'changes' => [[
                     'field' => 'smb_message_echoes',
                     'value' => [
                         'metadata' => [
-                            'display_phone_number' => '+1',
-                            'phone_number_id' => 'phone',
+                            'display_phone_number' => self::BUSINESS_PHONE,
+                            'phone_number_id' => self::PHONE_NUMBER_ID,
                         ],
                         'contacts' => [[
-                            'wa_id' => '15550000001',
-                            'user_id' => 'BSUID-1',
+                            'wa_id' => self::CUSTOMER_PHONE,
+                            'user_id' => self::CUSTOMER_BSUID,
                         ]],
                         'message_echoes' => [[
-                            'from' => '1',
-                            'to' => '15550000001',
-                            'id' => 'wamid.x',
-                            'timestamp' => '1',
+                            'from' => self::BUSINESS_PHONE,
+                            'to' => self::CUSTOMER_PHONE,
+                            'id' => 'wamid.test-no-profile',
+                            'timestamp' => '1700000300',
                             'type' => 'text',
-                            'text' => ['body' => 'hi'],
+                            'text' => ['body' => 'fictional body'],
                         ]],
                     ],
                 ]],
@@ -141,8 +351,8 @@ class WebhookCoexistenceEventsTest extends TestCase
         $event = $this->parse($payload);
         $contact = $event->entry[0]->changes[0]->value->contacts[0];
 
-        self::assertSame('15550000001', $contact->wa_id);
-        self::assertSame('BSUID-1', $contact->user_id);
+        self::assertSame(self::CUSTOMER_PHONE, $contact->wa_id);
+        self::assertSame(self::CUSTOMER_BSUID, $contact->user_id);
         self::assertNull($contact->profile);
     }
 
