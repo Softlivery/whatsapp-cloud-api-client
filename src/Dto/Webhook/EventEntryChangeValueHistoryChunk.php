@@ -12,4 +12,12 @@ class EventEntryChangeValueHistoryChunk
     public ?EventEntryChangeValueHistoryChunkMetadata $metadata = null;
     /** @var EventEntryChangeValueHistoryThread[] */
     public array $threads = [];
+    /**
+     * Populated only on the chat-history-sharing-declined payload, where Meta
+     * sends a single chunk carrying an error (code 2593109) instead of
+     * metadata + threads. Each entry is the raw error object as Meta sends it.
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    public array $errors = [];
 }

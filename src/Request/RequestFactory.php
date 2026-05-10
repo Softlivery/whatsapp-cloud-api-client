@@ -134,6 +134,37 @@ final class RequestFactory
     }
 
     /**
+     * POST /{phoneNumberId}/smb_app_data
+     *
+     * Triggers the WhatsApp Business app data sync that Meta needs after a
+     * Coexistence onboarding completes. Without this call no `smb_app_state_sync`
+     * or `history` webhooks are emitted, even when the App is subscribed at
+     * its WABA-level webhook URL.
+     *
+     * `syncType` accepts either `smb_app_state_sync` (contacts) or `history`
+     * (chat history). The endpoint is one-shot per syncType: a successful call
+     * cannot be retried unless the customer fully offboards and re-pairs.
+     * Authentication uses the customer access token issued by the Embedded
+     * Signup code exchange, not a System User token.
+     *
+     * Response is acknowledgment-only ({ messaging_product, request_id }); the
+     * actual webhooks arrive asynchronously over the following minutes/hours.
+     */
+    public static function syncSmbAppData(
+        string $phoneNumberId,
+        string $syncType,
+        string $accessToken,
+        int $timeout = 60
+    ): ApiRequest {
+        return (new ApiRequest("{$phoneNumberId}/smb_app_data", 'POST', $timeout))
+            ->withHeaders(['Authorization' => 'Bearer ' . $accessToken])
+            ->withJsonBody([
+                'messaging_product' => 'whatsapp',
+                'sync_type'         => $syncType,
+            ]);
+    }
+
+    /**
      * GET /oauth/access_token?client_id=...&client_secret=...&code=...&redirect_uri=...
      *
      * redirect_uri is intentionally always included, including empty string values.
