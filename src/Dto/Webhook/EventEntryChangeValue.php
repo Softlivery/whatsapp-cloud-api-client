@@ -53,6 +53,9 @@ class EventEntryChangeValue
     /** @var EventEntryChangeValueHistoryChunk[] Populated for the `history` webhook. */
     public ?array $history = null;
 
+    /** @var EventEntryChangeValueStateSyncEntry[] Populated for the `smb_app_state_sync` webhook. */
+    public ?array $state_sync = null;
+
     /** @var EventEntryChangeValueUserIdUpdate[] Populated for the `user_id_update` webhook. */
     public ?array $user_id_update = null;
 
@@ -66,6 +69,8 @@ class EventEntryChangeValue
             return 'smb_message_echoes';
         } elseif ($this->history !== null) {
             return 'history';
+        } elseif ($this->state_sync !== null) {
+            return 'smb_app_state_sync';
         } elseif ($this->user_id_update !== null) {
             return 'user_id_update';
         } elseif ($this->message_template_id !== null || $this->message_template_name !== null) {

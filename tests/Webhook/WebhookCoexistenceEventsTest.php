@@ -7,6 +7,9 @@ use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueHistoryCh
 use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueHistoryMessage;
 use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueHistoryThread;
 use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueMessageEcho;
+use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueStateSyncContact;
+use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueStateSyncEntry;
+use Softlivery\WhatsappCloudApiClient\Dto\Webhook\EventEntryChangeValueStateSyncMetadata;
 use Softlivery\WhatsappCloudApiClient\Webhook\WebhookEventHelper;
 
 class WebhookCoexistenceEventsTest extends TestCase
@@ -193,6 +196,91 @@ class WebhookCoexistenceEventsTest extends TestCase
         self::assertSame('fictional historic message', $message->text->body);
         self::assertNotNull($message->history_context);
         self::assertSame('delivered', $message->history_context->status);
+    }
+
+    public function testParsesSmbAppStateSyncContactBatch(): void
+    {
+        $payload = $this->encode([
+            'object' => 'whatsapp_business_account',
+            'entry' => [[
+                'id' => self::WABA_ID,
+                'changes' => [[
+                    'field' => 'smb_app_state_sync',
+                    'value' => [
+                        'messaging_product' => 'whatsapp',
+                        'metadata' => [
+                            'display_phone_number' => self::BUSINESS_PHONE,
+                            'phone_number_id' => self::PHONE_NUMBER_ID,
+                        ],
+                        'state_sync' => [
+                            [
+                                'type' => 'contact',
+                                'contact' => [
+                                    'full_name' => 'Fictional Customer One',
+                                    'first_name' => 'Fictional',
+                                    'phone_number' => self::CUSTOMER_PHONE,
+                                    'user_id' => self::CUSTOMER_BSUID,
+                                ],
+                                'action' => 'add',
+                                'metadata' => [
+                                    'timestamp' => '1700000000000',
+                                    'version' => 1,
+                                ],
+                            ],
+                            [
+                                'type' => 'contact',
+                                'contact' => [
+                                    'full_name' => 'Fictional Customer Two',
+                                    'phone_number' => '15550000002',
+                                    'user_id' => 'BSUID-CUSTOMER-2',
+                                ],
+                                'action' => 'update',
+                                'metadata' => [
+                                    'timestamp' => '1700000001000',
+                                    'version' => 1,
+                                ],
+                            ],
+                            [
+                                'type' => 'contact',
+                                'contact' => [
+                                    'phone_number' => '15550000003',
+                                    'user_id' => 'BSUID-CUSTOMER-3',
+                                ],
+                                'action' => 'remove',
+                                'metadata' => [
+                                    'timestamp' => '1700000002000',
+                                    'version' => 1,
+                                ],
+                            ],
+                        ],
+                    ],
+                ]],
+            ]],
+        ]);
+
+        $value = $this->parse($payload)->entry[0]->changes[0]->value;
+        self::assertSame('smb_app_state_sync', $value->type());
+        self::assertIsArray($value->state_sync);
+        self::assertCount(3, $value->state_sync);
+
+        $first = $value->state_sync[0];
+        self::assertInstanceOf(EventEntryChangeValueStateSyncEntry::class, $first);
+        self::assertSame('contact', $first->type);
+        self::assertSame('add', $first->action);
+        self::assertInstanceOf(EventEntryChangeValueStateSyncContact::class, $first->contact);
+        self::assertSame('Fictional Customer One', $first->contact->full_name);
+        self::assertSame('Fictional', $first->contact->first_name);
+        self::assertSame(self::CUSTOMER_PHONE, $first->contact->phone_number);
+        self::assertSame(self::CUSTOMER_BSUID, $first->contact->user_id);
+        self::assertInstanceOf(EventEntryChangeValueStateSyncMetadata::class, $first->metadata);
+        self::assertSame('1700000000000', $first->metadata->timestamp);
+        self::assertSame(1, $first->metadata->version);
+
+        self::assertSame('update', $value->state_sync[1]->action);
+        self::assertNull($value->state_sync[1]->contact->first_name);
+
+        self::assertSame('remove', $value->state_sync[2]->action);
+        self::assertNull($value->state_sync[2]->contact->full_name);
     }
 
     public function testParsesPhoneNumberQualityUpdate(): void
